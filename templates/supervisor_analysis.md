@@ -35,6 +35,10 @@
 ## Reviewer Handoff
 
 - artifacts reviewer must inspect:
+- visual image checks requested:
+- code/config audit requested:
+- metric/log audit requested:
+- suggested sub-agent split:
 - specific questions for reviewer:
 - what would change the next decision:
 

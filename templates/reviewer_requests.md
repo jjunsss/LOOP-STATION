@@ -1,11 +1,43 @@
 # Reviewer Requests
 
-| reviewer | role | required | reason | artifacts to read | expected review output | expected terminal flag | timeout |
-|---|---|---:|---|---|---|---|---|
+| reviewer | model/version | instruction profile | role | required | reason | artifacts to read | expected review output | expected terminal flag | timeout |
+|---|---|---|---|---:|---|---|---|---|---|
 
 ## Request Notes
 
 - 
+
+## Reviewer Identity
+
+- reviewer agent:
+- model/version:
+- instruction profile:
+- must act as: `REVIEWER`
+- must not act as: `EXECUTOR` or `SUPERVISOR` unless explicitly reassigned
+
+## Suggested Audit Axes
+
+- visual image check:
+  - result images / panels:
+  - crops or regions:
+  - current-best comparison:
+- metric audit:
+  - metrics:
+  - anchors:
+  - confounds:
+- code/config audit:
+  - generated code:
+  - configs:
+  - manifests / diffs:
+- log/artifact audit:
+  - commands:
+  - resource usage:
+  - missing or stale artifacts:
+- sub-agent decomposition:
+  - visual reviewer:
+  - metric/log reviewer:
+  - code/config reviewer:
+  - artifact completeness reviewer:
 
 ## Sequential Gate
 

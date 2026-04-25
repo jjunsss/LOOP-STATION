@@ -6,6 +6,13 @@
 - latest reviewed session:
 - recommendation:
 
+## Audit Coverage
+
+- visual image checks:
+- metric/log analysis:
+- code/config audit:
+- sub-agent assisted findings:
+
 ## Recurring Reviewer Concerns
 
 - 
@@ -21,4 +28,3 @@
 ## Reviewer Requests For Next Session
 
 - 
-

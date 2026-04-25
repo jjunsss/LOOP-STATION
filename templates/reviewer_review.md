@@ -1,6 +1,8 @@
 # Reviewer Report
 
 - agent:
+- model/version:
+- instruction profile:
 - role: `REVIEWER`
 - session:
 - status:
@@ -10,6 +12,40 @@
 ## Evidence Checked
 
 - 
+
+## Audit Methods Used
+
+- visual image check: yes|no
+- metric audit: yes|no
+- code/config audit: yes|no
+- log/artifact audit: yes|no
+- sub-agents or helper reviewers used:
+
+## Visual Image Check
+
+- images/panels/crops inspected:
+- visible improvements:
+- visible regressions:
+- metric-vs-visual mismatch:
+
+## Metric / Log Analysis
+
+- metric trends:
+- variance or confounds:
+- command/log/resource issues:
+
+## Code / Config Audit
+
+- files, diffs, manifests, or variants inspected:
+- implementation matches experiment: yes|no|uncertain
+- code/config risks:
+
+## Sub-Agent Findings
+
+- visual sub-agent:
+- metric/log sub-agent:
+- code/config sub-agent:
+- artifact completeness sub-agent:
 
 ## Verdict
 

@@ -1,8 +1,8 @@
 # Agent Roster
 
-| agent | role | required | session | status | notes |
-|---|---|---:|---:|---|---|
-| `<agent>` | `SUPERVISOR` | yes | 001 | `READY` |  |
+| agent | model/version | instruction profile | role | required | session | status | notes |
+|---|---|---|---|---:|---:|---|---|
+| `<agent>` | `<model/version or unknown>` | `<executor|supervisor|scientific reviewer|visual auditor|code auditor>` | `SUPERVISOR` | yes | 001 | `READY` |  |
 
 ## Flag Format
 
@@ -26,3 +26,5 @@
 - `BLOCKED`
 - `ABSTAIN`
 - `TIMEOUT`
+- `VIOLATION`
+- `REPAIRED`

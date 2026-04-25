@@ -200,6 +200,8 @@ loop_station/sessions/session_{NNN}/reviewer_requests.md
 Each reviewer request must include:
 
 - requested reviewer agent name or reviewer class
+- requested reviewer model/version when known
+- reviewer instruction profile, such as `scientific reviewer`, `visual auditor`, `code auditor`, or `metric/log analyst`
 - requested role: `REVIEWER` or `TESTER`
 - session id
 - reason this reviewer is useful
@@ -257,6 +259,8 @@ Use this mode when another agent, including Claude Code, is asked to review the 
 
 If the shared frame is locked, the reviewer must not ask the user for the frame again and must not rewrite `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned session artifacts. The reviewer may read them and may write only reviewer-owned flags and review artifacts unless explicitly assigned `EXECUTOR` or `SUPERVISOR`.
 
+The review request should identify the reviewer as a separate reviewer identity: a different model/version, a different agent, or an explicit instruction profile. Examples: `Claude Code scientific reviewer`, `GPT-5.5 xhigh reviewer`, `vision-focused auditor`, `code/config auditor`, or `metric/log analyst`. If the model/version is unknown, the request must still state the reviewer instruction profile and that the agent is acting as `REVIEWER`.
+
 The reviewer reads:
 
 - `loop_station/FRAME.md`
@@ -269,9 +273,21 @@ The reviewer reads:
 
 The reviewer must not run the next session or modify code unless explicitly assigned `EXECUTOR`.
 
+Reviewer and audit work may include multiple evidence axes. Use the axes that fit the goal and available artifacts:
+
+- visual image checks: compare rendered frames, panels, crops, masks, failure examples, and current-best outputs
+- metric audit: compare target metrics against prior sessions, anchors, variance, and known confounds
+- code/config audit: inspect generated code, scripts, config changes, code variants, manifests, and diffs
+- log/artifact audit: verify commands, seeds, resource use, failed runs, missing files, stale outputs, and readable artifact paths
+- scientific analysis: explain plausible mechanisms, tradeoffs, hidden regressions, and next experiment implications
+
+When sub-agents or helper reviewers are available, the reviewer may split the audit by axis, for example one sub-agent for code/config, one for visual outputs, one for metrics/logs, and one for artifact completeness. The final reviewer artifact must integrate those findings into one coherent recommendation.
+
 The reviewer should write only high-value review:
 
 - whether the executor's interpretation is supported by evidence
+- visual observations that support or contradict metric changes
+- code/config concerns that could invalidate the result
 - whether the changed values or implementation variant match the goal
 - what direction should be promoted, kept, or retired
 - what risk, confound, or missing validation could invalidate the next session
@@ -589,7 +605,7 @@ For GPU work, check current GPU idleness before launch. Use all available GPUs o
 
 Every meaningful session must leave a review artifact appropriate to the goal. Use visual panels for visual failure modes, metric tables for quantitative loops, diffs for code loops, transcripts for language loops, or other concrete artifacts that let a reviewer judge progress.
 
-The supervisor must state which artifacts to inspect and what decision each artifact supports.
+The supervisor must state which artifacts to inspect and what decision each artifact supports. If the session produced images, visual comparisons, or rendered outputs, the review request should explicitly ask for visual image checks. If the session changed code, scripts, configs, or variants, the review request should explicitly ask for code/config audit. If the review is broad enough to benefit from decomposition, the request may ask the reviewer to use sub-agents for separate visual, metric, code, and log/artifact analysis before writing the integrated review.
 
 ## Output Contract
 

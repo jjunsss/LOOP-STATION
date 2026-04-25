@@ -32,6 +32,7 @@
 ## Sequential Gate Checklist
 
 - [ ] `reviewer_requests.md` updated
+- [ ] reviewer identity records agent, model/version or unknown, instruction profile, and `REVIEWER` role
 - [ ] `SUPERVISOR-READY` flag written
 - [ ] expected `flags/session_{NNN}/` path checked
 - [ ] expected `reviews/session_{NNN}/` path checked

@@ -106,6 +106,7 @@ LOOP-STATION gives an agent a concrete operating protocol:
 - **Runs bounded sessions** instead of open-ended retries.
 - **Writes durable evidence** after each session: reports, changed values, artifacts, failures, and next proposals.
 - **Coordinates reviewer handoff** so Codex, Claude Code, or another agent can review without asking the user to restate the goal.
+- **Supports broad review/audit work**: visual image checks, metric trend analysis, log inspection, code/config audit, artifact completeness checks, and sub-agent assisted investigation.
 - **Uses named flags** to show which agent is running, done, waiting for review, or finished.
 - **Keeps code variants isolated** so loop-driven changes do not patch maintained source until the user explicitly promotes them.
 - **Forces a decision point** at each session boundary: promote, keep, retire, continue, stop, or ask the user.
@@ -118,6 +119,20 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 - prompt and agent-behavior iteration
 - visual and metric review loops
 - multi-agent execution with reviewer handoff
+
+## Review And Audit Examples
+
+Reviewer work can be broader than a short text opinion. The reviewer may inspect any evidence the supervisor exposes and may use sub-agents when the environment supports them.
+
+When requesting review, name the reviewer identity clearly: a different model/version, a different agent, or an explicit reviewer instruction profile. The request should say that this identity is acting as `REVIEWER`, not executor or supervisor.
+
+Examples:
+
+- **Visual image check**: compare result panels, rendered frames, crops, masks, failure examples, and current-best outputs; call out visible regressions that metrics hide.
+- **Metric audit**: check PSNR/LPIPS/SSIM or project-specific metrics against prior sessions, anchors, variance, and known confounds.
+- **Code audit**: inspect generated scripts, config changes, code variants, manifests, diffs, and whether the implementation matches the stated experiment.
+- **Log and artifact audit**: verify commands, seeds, GPU/resource use, failed runs, missing files, stale outputs, and whether reviewer-linked artifacts are readable.
+- **Sub-agent assisted review**: ask one sub-agent to inspect code changes, another to compare visual outputs, another to summarize metrics or logs, then write one integrated review.
 
 ## How to Command It
 
@@ -144,6 +159,7 @@ Start the reviewer after Codex has begun producing loop artifacts:
 Watch the running Codex LOOP-STATION experiment.
 Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-READY flags.
 When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
+Perform visual image checks and code/config audit when relevant. Use sub-agents for separate audit axes if available.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
 Update reviewer rollup/compact notes if file writes are available, then compact only after the review is durable.
 Keep watching for the next session.
@@ -171,7 +187,9 @@ Roles:
 CODEX: executor and supervisor. Run experiments, use sub-agents when useful, write
 executor_report.md, executor_proposal.md, supervisor_analysis.md, flags, and the
 final decision.md after reviewer feedback.
-CLAUDE: external reviewer. Stay in standby until CODEX writes EXECUTOR-DONE and
+CLAUDE or another specified reviewer model/version: external reviewer only.
+Use a reviewer instruction profile: "act as a scientific reviewer and auditor,
+not as executor." Stay in standby until CODEX writes EXECUTOR-DONE and
 SUPERVISOR-READY. Then review the artifacts scientifically and write reviewer output.
 
 Goal:
@@ -194,7 +212,15 @@ CODEX should run the experiments and perform its own supervisor analysis before
 external review. It may use sub-agents to inspect generated code, result images,
 metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
 CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
-write an independent review with improvement directions.
+write an independent review with improvement directions. CLAUDE may perform
+visual image checks, code/config audit, metric/log analysis, and artifact
+completeness checks. When sub-agents are available, CLAUDE may split the review
+across visual, metric, code, and log/artifact audit axes, then write one
+integrated reviewer report.
+The review request should specify the reviewer identity, such as "Claude Code",
+"GPT-5.5 xhigh reviewer", "a vision-focused reviewer instruction", or "a code
+audit reviewer instruction", so the reviewer is intentionally different from
+the executor path.
 Both agents should keep `loop_station/summaries/` current so context compaction
 does not lose the experiment direction. Compact only after terminal flags and
 summary updates are durable.
@@ -344,6 +370,8 @@ Do not rewrite the experiment. Wait for Codex results, then review them.
 
 Reviewer instructions:
 - Find the active loop/output root and latest session artifacts.
+- Use this identity: external scientific reviewer and auditor. Do not act as
+  executor or supervisor unless explicitly reassigned.
 - If FRAME.md and contract.json exist, reuse them instead of asking setup questions.
 - If Codex has not finished the current session, stay in standby.
 - For continuous standby, start the available Monitor/background watcher immediately.
@@ -352,6 +380,11 @@ Reviewer instructions:
 - Read executor_report.md, executor_proposal.md, supervisor_analysis.md,
   reviewer_requests.md, metrics, logs, diffs, generated code, result images,
   and artifacts.
+- Perform visual image checks when result images exist.
+- Audit code/config changes, manifests, scripts, and logs when they are part of
+  the session.
+- Use sub-agents for focused visual, metric, code, or log/artifact review when
+  available, then integrate their findings into one reviewer report.
 - Do not execute experiments, modify code, edit frame files, or prepare the next session.
 - Write a concise scientific review: trends, likely causes, risks, and next
   experiment suggestions.

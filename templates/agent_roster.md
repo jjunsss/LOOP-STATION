@@ -14,7 +14,6 @@
 
 - `SUPERVISOR`
 - `EXECUTOR`
-- `ANALYST`
 - `REVIEWER`
 - `TESTER`
 

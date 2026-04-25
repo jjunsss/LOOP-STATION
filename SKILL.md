@@ -88,7 +88,7 @@ If `contract.json` exists and `frame_locked` is true, any later agent must reuse
 
 ## Agent Modes
 
-Loop Station supports three common modes.
+Loop Station supports two common modes.
 
 ### Supervisor / Executor Mode
 
@@ -123,7 +123,7 @@ loop_station/sessions/session_{NNN}/reviewer_requests.md
 Each reviewer request must include:
 
 - requested reviewer agent name or reviewer class
-- requested role: `REVIEWER`, `ANALYST`, or `TESTER`
+- requested role: `REVIEWER` or `TESTER`
 - session id
 - reason this reviewer is useful
 - artifacts to read
@@ -181,10 +181,6 @@ Before doing review work, the reviewer should write a start flag:
 ```
 
 If the reviewer cannot complete the review, it should write `BLOCKED` or `ABSTAIN` with a concise reason.
-
-### Analyst Mode
-
-Use this mode for deeper side analysis that does not approve or block execution. Analyst notes follow the same naming rule but use role `ANALYST`.
 
 ## Review Wait Policy
 
@@ -288,8 +284,8 @@ CODEX5.5-SESSION050-SUPERVISOR-DONE
 CODEX5.5-SESSION050-EXECUTOR-DONE
 CLAUDE-SESSION050-REVIEWER-RUNNING
 CLAUDE-SESSION050-REVIEWER-HEARTBEAT
-ANALYST_A-SESSION050-ANALYST-DONE
-REVIEWER_B-SESSION050-BLOCKED
+REVIEWER_B-SESSION050-REVIEWER-BLOCKED
+TESTER_A-SESSION050-TESTER-DONE
 CODEX5.5-SESSION050-SUPERVISOR-TIMEOUT
 ```
 
@@ -297,7 +293,6 @@ Allowed roles:
 
 - `SUPERVISOR`
 - `EXECUTOR`
-- `ANALYST`
 - `REVIEWER`
 - `TESTER`
 

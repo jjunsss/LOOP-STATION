@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/LOOP-STATION.png" alt="LOOP-STATION" width="100%">
+</p>
+
 # LOOP-STATION
 
 **A control-room skill for bounded, goal-directed loops.**

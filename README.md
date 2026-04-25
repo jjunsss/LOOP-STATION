@@ -29,8 +29,8 @@ Once that frame is locked, agents can run, review, and continue from the same sh
 
 Install with Codex's skill installer:
 
-```text
-Use $skill-installer to install the skill from repo `jjunsss/LOOP-STATION`, path `.`, name `loop-station`.
+```bash
+python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/install-skill-from-github.py" --repo jjunsss/LOOP-STATION --path . --name loop-station
 ```
 
 Restart Codex after installation so the new skill is loaded.

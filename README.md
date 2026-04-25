@@ -200,35 +200,49 @@ Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The ex
 
 ## Claude Code Reviewer Mode
 
-For reviewer-only use, give Claude Code this prompt:
+Use Claude after Codex has already started the LOOP-STATION run and produced at least some session artifacts. The normal flow is:
 
 ```text
-Use LOOP-STATION in Reviewer / Project Review Mode.
+Codex starts and runs LOOP-STATION
+Codex writes session reports, proposals, metrics, images, logs, and flags
+Claude Code is invoked as a reviewer with brief experiment context
+Claude reads the loop artifacts and writes a focused review
+Codex uses the review when deciding the next session
+```
 
-Loop root:
+The `loop_station/` folder is created by the running loop, but Claude may not know where it is or what the experiment is about. Give Claude enough context to find the run and understand what kind of review you want.
+
+Example Claude reviewer prompt:
+
+```text
+/loop-station
+나는 현재 Codex로 전신 실험을 돌리는 LOOP-STATION 실험을 하고 있어.
+Codex가 어느 정도 session을 실행해서 중간 결과, metrics, 이미지, 코드 변경,
+executor_report, executor_proposal을 남겨둔 상태야.
+
+Loop/output root:
 <loop_output_root>/loop_station/
 
-Agent name:
-CLAUDE
+Experiment context:
+전신 품질 개선 실험이고, 중간 결과들의 경향성을 파악해서 의미 있는 개선 방향을
+제안해주면 좋겠어. 결과가 충분히 쌓인 뒤에 review를 적어주면 되고,
+잡다한 말보다 scientific하고 의미 있는 부분에 집중해줘.
 
-If contract.json has frame_locked=true, do not ask me to restate the goal.
-Read FRAME.md, contract.json, the latest executor_report.md, executor_proposal.md,
-reviewer_requests.md, changed values, manifests, diffs, metrics, logs, and artifacts.
+Reviewer instructions:
+- 먼저 loop/output root와 최근 session artifacts를 찾아.
+- FRAME.md와 contract.json이 있으면 goal, budget, scope를 다시 묻지 말고 그대로 사용해.
+- 최신 executor_report.md, executor_proposal.md, reviewer_requests.md, metrics,
+  logs, diffs, generated code, result images, and artifacts를 읽어.
+- 실험을 직접 실행하지 말고 reviewer로만 행동해.
+- 코드 수정이나 다음 session 실행은 하지 마.
+- 단순 요약보다 경향성, 실패 원인, 개선 가능성이 큰 방향, 다음 실험 제안을 중심으로 써.
 
-Do not run the next session.
-Do not modify code.
-
-Write only high-value review:
-- whether the executor interpretation is supported by evidence
-- whether changed values or implementation variants match the goal
-- what to promote, keep, or retire
-- risks or missing validation
-- one recommended next action or ABSTAIN
-
-Write:
+Write the review to:
 <loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
 <loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
 ```
+
+If you do not know the exact loop root, provide the project directory, subject or experiment name, and what Codex has been running. Claude should search for the active `loop_station/` folder, then use the locked frame if it exists.
 
 ## Example
 

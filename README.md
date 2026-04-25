@@ -8,6 +8,59 @@
 
 LOOP-STATION helps Codex, Claude Code, and other agents improve a target over multiple sessions without drifting from the original goal. It is not an optimizer by itself. It is the control layer around the work: it locks the frame, limits the loop, records evidence, coordinates review, and keeps implementation variants isolated until they are ready to promote.
 
+## Install
+
+### Codex
+
+Install with Codex's skill installer:
+
+```bash
+python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/install-skill-from-github.py" --repo jjunsss/LOOP-STATION --path . --name loop-station
+```
+
+Restart Codex after installation so the new skill is loaded.
+
+### Claude Code
+
+Claude Code can use the same skill files. Add the repository contents to a Claude Code skill folder.
+
+Personal skill:
+
+```text
+~/.claude/skills/
+  loop-station/
+    SKILL.md
+    templates/
+```
+
+Project skill:
+
+```text
+<project>/
+  .claude/
+    skills/
+      loop-station/
+        SKILL.md
+        templates/
+```
+
+Restart Claude Code after adding or updating the skill so it reloads the skill list.
+
+### Manual Fallback
+
+Use this only when an installer is not available.
+
+Codex project-local fallback:
+
+```text
+<project>/
+  skills/
+    loop-station/
+      SKILL.md
+      agents/openai.yaml
+      templates/
+```
+
 ## What the Skill Does
 
 LOOP-STATION gives an agent a concrete operating protocol:
@@ -28,18 +81,6 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 - prompt and agent-behavior iteration
 - visual and metric review loops
 - multi-agent execution with reviewer handoff
-
-## Why It Exists
-
-Agent loops often fail in predictable ways:
-
-- the goal changes between sessions
-- reviewers lack enough context to judge the work
-- evidence gets scattered across chat, logs, and local files
-- retries continue without a budget or stop rule
-- implementation variants overwrite maintained source before they are proven
-
-LOOP-STATION turns those weak points into explicit files, flags, and decision rules.
 
 ## How to Command It
 
@@ -123,74 +164,6 @@ CLAUDE-SESSION050-REVIEWER-DONE
 ```
 
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
-
-## Safe Code Variants
-
-Loop-driven implementation changes should not patch maintained source in place. Create an isolated implementation variant instead:
-
-```text
-{loop_output_root}/code_variants/session_003/quality_gate_adjustment/
-  manifest.json
-  decision.md
-  src_or_scripts_to_run/
-```
-
-The manifest records copied source files, source hashes, changed files, the reason config-only changes were insufficient, and the command or config that runs the variant.
-
-Direct edits to maintained source should require explicit user approval and a restore path.
-
-## Install
-
-### Codex
-
-Install with Codex's skill installer:
-
-```bash
-python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/install-skill-from-github.py" --repo jjunsss/LOOP-STATION --path . --name loop-station
-```
-
-Restart Codex after installation so the new skill is loaded.
-
-### Claude Code
-
-Claude Code can use the same skill files. Add the repository contents to a Claude Code skill folder.
-
-Personal skill:
-
-```text
-~/.claude/skills/
-  loop-station/
-    SKILL.md
-    templates/
-```
-
-Project skill:
-
-```text
-<project>/
-  .claude/
-    skills/
-      loop-station/
-        SKILL.md
-        templates/
-```
-
-Restart Claude Code after adding or updating the skill so it reloads the skill list.
-
-### Manual Fallback
-
-Use this only when an installer is not available.
-
-Codex project-local fallback:
-
-```text
-<project>/
-  skills/
-    loop-station/
-      SKILL.md
-      agents/openai.yaml
-      templates/
-```
 
 ## Claude Code Reviewer Mode
 

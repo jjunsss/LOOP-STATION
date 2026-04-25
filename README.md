@@ -1,14 +1,28 @@
 <p align="center">
-  <img src="./assets/LOOP-STATION.png" alt="LOOP-STATION" width="100%">
+  <img src="./assets/LOOP-STATION.png" alt="LOOP-STATION" width="88%">
 </p>
 
 # LOOP-STATION
 
-**A control-room skill for bounded, goal-directed loops.**
+**Run iterative agent work without losing the goal, evidence, or handoff.**
 
-LOOP-STATION helps agents improve a target through repeated sessions without losing the goal, budget, evidence, or reviewer handoff. It locks a small decision frame first, then keeps every session traceable through shared files, named flags, executor reports, reviewer notes, and safe implementation variants.
+LOOP-STATION is a reusable skill for Codex, Claude Code, and other agent workflows that need bounded improvement loops instead of one-shot execution. It locks the decision frame first, then keeps every session traceable through shared files, named flags, executor reports, reviewer notes, and isolated implementation variants.
 
-Use it when the work needs adaptive loops rather than one-shot execution:
+Use it when agents need to improve something over multiple sessions while staying anchored to the same goal, budget, evidence, and review policy.
+
+## What It Solves
+
+Agent loops often fail in the same ways:
+
+- the goal changes between sessions
+- reviewers lack enough context to judge the work
+- evidence gets scattered across chat, logs, and local files
+- retries continue without a budget or stop rule
+- implementation variants overwrite maintained source before they are proven
+
+LOOP-STATION fixes this by turning the loop into a small protocol: lock the frame, run a bounded session, write evidence, request review when useful, make a decision, then continue, stop, or ask the user.
+
+## Use Cases
 
 - model or pipeline optimization
 - data cleanup and quality repair
@@ -17,19 +31,9 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 - visual and metric review loops
 - multi-agent execution with reviewer handoff
 
-The user-facing frame is intentionally small:
+## Install
 
-```text
-Goal: what should improve or be decided
-Budget: max sessions, wall time, resource pool, cost, or stop limit
-Work-unit scope: one item, a fixed set, or a robustness set
-Collaboration: supervisor only, executor + reviewer, or external review
-User intervention: changes that require explicit approval
-```
-
-Once that frame is locked, agents can run, review, and continue from the same shared state instead of asking the setup questions again.
-
-## Quick Start In Codex
+### Codex
 
 Install with Codex's skill installer:
 
@@ -39,22 +43,9 @@ python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/insta
 
 Restart Codex after installation so the new skill is loaded.
 
-Then invoke LOOP-STATION with the required frame:
+### Claude Code
 
-```text
-Use $loop-station for this goal-directed loop.
-Goal: ...
-Budget: ...
-Work-unit scope: ...
-Collaboration: ...
-User intervention: ...
-```
-
-If any required frame field is missing, LOOP-STATION should ask for only the missing parts and keep asking until the frame is complete.
-
-## Claude Code
-
-Claude Code can use the same skill files, but it does not use Codex's `$skill-installer`. Add the repository contents to a Claude Code skill folder.
+Claude Code can use the same skill files. Add the repository contents to a Claude Code skill folder.
 
 Personal skill:
 
@@ -78,37 +69,7 @@ Project skill:
 
 Restart Claude Code after adding or updating the skill so it reloads the skill list.
 
-For reviewer-only use, give Claude Code this prompt:
-
-```text
-Use LOOP-STATION in Reviewer / Project Review Mode.
-
-Loop root:
-<loop_output_root>/loop_station/
-
-Agent name:
-CLAUDE
-
-If contract.json has frame_locked=true, do not ask me to restate the goal.
-Read FRAME.md, contract.json, the latest executor_report.md, executor_proposal.md,
-reviewer_requests.md, changed values, manifests, diffs, metrics, logs, and artifacts.
-
-Do not run the next session.
-Do not modify code.
-
-Write only high-value review:
-- whether the executor interpretation is supported by evidence
-- whether changed values or implementation variants match the goal
-- what to promote, keep, or retire
-- risks or missing validation
-- one recommended next action or ABSTAIN
-
-Write:
-<loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
-<loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
-```
-
-## Manual Install Fallback
+### Manual Fallback
 
 Use this only when an installer is not available.
 
@@ -122,6 +83,33 @@ Codex project-local fallback:
       agents/openai.yaml
       templates/
 ```
+
+## Quick Start
+
+Invoke LOOP-STATION with the required frame:
+
+```text
+Use $loop-station for this goal-directed loop.
+Goal: ...
+Budget: ...
+Work-unit scope: ...
+Collaboration: ...
+User intervention: ...
+```
+
+The user-facing frame is intentionally small:
+
+```text
+Goal: what should improve or be decided
+Budget: max sessions, wall time, resource pool, cost, or stop limit
+Work-unit scope: one item, a fixed set, or a robustness set
+Collaboration: supervisor only, executor + reviewer, or external review
+User intervention: changes that require explicit approval
+```
+
+If any required frame field is missing, LOOP-STATION should ask for only the missing parts and keep asking until the frame is complete.
+
+Once the frame is locked, agents can run, review, and continue from the same shared state instead of asking the setup questions again.
 
 ## Features
 
@@ -190,6 +178,38 @@ CLAUDE-SESSION050-REVIEWER-DONE
 ```
 
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
+
+## Claude Code Reviewer Mode
+
+For reviewer-only use, give Claude Code this prompt:
+
+```text
+Use LOOP-STATION in Reviewer / Project Review Mode.
+
+Loop root:
+<loop_output_root>/loop_station/
+
+Agent name:
+CLAUDE
+
+If contract.json has frame_locked=true, do not ask me to restate the goal.
+Read FRAME.md, contract.json, the latest executor_report.md, executor_proposal.md,
+reviewer_requests.md, changed values, manifests, diffs, metrics, logs, and artifacts.
+
+Do not run the next session.
+Do not modify code.
+
+Write only high-value review:
+- whether the executor interpretation is supported by evidence
+- whether changed values or implementation variants match the goal
+- what to promote, keep, or retire
+- risks or missing validation
+- one recommended next action or ABSTAIN
+
+Write:
+<loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
+<loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
+```
 
 ## Safe Code Variants
 

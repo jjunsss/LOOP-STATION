@@ -52,55 +52,21 @@ Every reviewed session follows this order:
 
 ### Codex
 
-In Codex, ask:
+Ask Codex:
 
 ```text
 Install the Codex skill from https://github.com/jjunsss/LOOP-STATION as loop-station.
 ```
 
-Codex will use its built-in skill installer and place the skill under your Codex skills directory. Restart Codex after installation so the new skill is loaded.
-
-CLI fallback:
-
-```bash
-python ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --url https://github.com/jjunsss/LOOP-STATION --path . --name loop-station
-```
+Restart Codex after installation.
 
 ### Claude Code
 
-Claude Code can use the same skill files. Clone or copy this repository into a Claude Code skill folder.
-
-```bash
-git clone https://github.com/jjunsss/LOOP-STATION.git ~/.claude/skills/loop-station
-```
-
-For a project-local skill, place it here instead:
-
 ```text
-<project>/
-  .claude/
-    skills/
-      loop-station/
-        SKILL.md
-        templates/
+Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
 ```
 
-Restart Claude Code after adding or updating the skill so it reloads the skill list.
-
-### Manual Fallback
-
-Use this only when an installer is not available.
-
-Codex project-local fallback:
-
-```text
-<project>/
-  skills/
-    loop-station/
-      SKILL.md
-      agents/openai.yaml
-      templates/
-```
+Restart Claude Code after installation.
 
 ## What the Skill Does
 
@@ -128,6 +94,8 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 Invoke LOOP-STATION with a required frame. The frame can be short, but it can also include project context, prior loop references, metrics, compute budget, collaboration rules, and experiment preferences.
 
 ### Minimal Live Loop
+
+The minimal frame can be short, but better goals produce better loops. Include concrete context, target subjects/items, important metrics, visual checks, compute budget, and who should execute or review whenever you know them.
 
 ```text
 $loop-station
@@ -165,32 +133,41 @@ If any required field is missing, LOOP-STATION should ask only for the missing p
 
 ```text
 $loop-station
-나는 이전에 feet loop를 만들어서 돌린 게 있어. 일단 이걸 확인해보고.
+I previously ran a feet-focused loop. First, inspect that prior loop and its artifacts.
+
+Roles:
+CODEX: executor and supervisor. Run experiments, use sub-agents when useful, write
+executor_report.md, executor_proposal.md, supervisor_analysis.md, flags, and the
+final decision.md after reviewer feedback.
+CLAUDE: external reviewer. Stay in standby until CODEX writes EXECUTOR-DONE and
+SUPERVISOR-READY. Then review the artifacts scientifically and write reviewer output.
 
 Goal:
-200014의 사람 자체의 퀄리티를 높여야 할 것 같아. PSNR / LPIPS 같은
-수치를 활용할 수 있을 것 같고, foot floater 등도 애초에 사람 퀄리티가
-좋지 않아서 발생하는 것 같아. 가능하다면 매 session마다 수치적 + 시각적으로
-결과를 확인해줘.
+Improve the full-body human quality for subject 200014. Use quantitative metrics
+such as PSNR, LPIPS, and SSIM where useful, and inspect rendered images every
+session. Foot floaters may be a symptom of poor whole-body quality, so do not
+optimize only local foot artifacts if the full-body result regresses.
 
 Budget:
-session 40. GPU 4개 모두 사용해도 되고, 1개의 session은 모든 GPU에서
-다양한 variants를 적용해서 돌리고 얻은 결과들을 모아서 분석하는 걸 기준으로 해.
+Run up to 40 sessions. You may use all 4 GPUs. Treat one session as a batch of
+variants across GPUs, then aggregate metrics, images, logs, and failures before
+choosing the next session.
 
 Work-unit scope:
-subject 200014를 중심으로 수치 지표와 렌더링 결과 이미지를 함께 비교해줘.
+Focus on subject 200014. Compare each variant against current best, relevant
+anchors, and prior loop artifacts using both metrics and visual evidence.
 
 Collaboration:
-GPT-5.5 xhigh를 활용해서 실험을 진행해도 좋고, 분석 시에는 sub-agent를
-다양한 목적으로 활용하면서 생성된 코드와 결과 이미지를 분석해서 정리해도 좋아.
-협력자로 CLAUDE를 활용할 건데, CLAUDE는 생성된 코드와 분석 설명을 확인해서
-자신의 견해와 개선 방향을 review하는 형태로 사용할 거야.
+CODEX should run the experiments and perform its own supervisor analysis before
+external review. It may use sub-agents to inspect generated code, result images,
+metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
+CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
+write an independent review with improvement directions.
 
 User intervention:
-코드를 수정해도 좋고, 보다 scientific하게 성능을 개선할 수 있어도 좋아.
-하이퍼파라미터들을 변경해도 좋아. 다만 수치를 아주 조금씩 바꾸는 것보다,
-다양한 실험을 통해 개선을 보이는 것이 중요해. 유지 중인 원본 코드를 직접
-패치해야 한다면 먼저 확인해줘.
+Code changes and hyperparameter changes are allowed when scientifically justified.
+Prefer diverse, informative experiments over tiny one-parameter nudges. Ask before
+directly patching maintained source if an isolated variant is not enough.
 ```
 
 ## How It Runs

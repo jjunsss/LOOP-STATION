@@ -26,6 +26,7 @@
 
 - [ ] active `loop_station/` folder resolved
 - [ ] target session resolved
+- [ ] persistent monitor/background watcher started when continuous waiting was requested and the environment supports it
 - [ ] reviewer did not modify `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned artifacts
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` observed before review
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` observed when Codex analysis/decision is required first

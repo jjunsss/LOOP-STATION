@@ -19,6 +19,11 @@
 ## Reviewer Standby Instructions
 
 - Active session:
+- Continuous wait requested: yes|no
+- Persistent monitor/background watcher:
+  - tool:
+  - poll interval:
+  - ready signal:
 - Review starts only after:
   - [ ] executor terminal flag observed
   - [ ] supervisor terminal flag observed if Codex analysis/decision is required first

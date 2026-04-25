@@ -39,6 +39,11 @@
     "heartbeat_timeout_seconds": 600,
     "sequential_flag_gate": true,
     "require_artifact_for_done": true,
+    "continuous_monitor": {
+      "enabled": false,
+      "poll_interval_seconds": 60,
+      "ready_signal_once_per_session": true
+    },
     "allow_skip_on_timeout": true
   },
   "current_session": 1

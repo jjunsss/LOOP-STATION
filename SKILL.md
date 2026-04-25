@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for bounded goal-directed loops that must first lock a goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries, then run adaptive sessions that inspect results, adjust strategy, isolate implementation variants, and stop or escalate without turning into open-ended retry.
+description: Use for bounded goal-directed loops that must first lock a goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries, then run adaptive sessions that inspect results, adjust strategy, isolate implementation variants, and stop or escalate without turning into open-ended retry. If invoked as a reviewer before executor/supervisor terminal flags exist, enter standby and use any available monitor/background watcher tool to poll loop_station flags instead of editing files or writing a premature review.
 ---
 
 # Loop Station
@@ -210,16 +210,21 @@ Use this mode when a reviewer is invoked before the executor has finished the cu
 
 The reviewer must not infer the frame and start editing loop files. If `FRAME.md` and `contract.json` already exist, treat them as Codex/executor-owned and read-only. If they do not exist, do not create them unless the user explicitly asks this reviewer to become the supervisor.
 
+If the user asks for continuous waiting, real-time waiting, ongoing review, or "keep watching", the reviewer should immediately use the environment's persistent monitor, background watcher, automation, or equivalent long-running polling tool when available. Do this as part of entering standby, not only after the user repeats the request.
+
+The watcher should poll for ready signals, not modify experiment files. It should emit or act only when a session becomes review-ready: executor terminal flag present, supervisor terminal flag present when required, and linked artifacts readable.
+
 Standby sequence:
 
 1. Locate the active `loop_station/` folder from the user's provided project, subject, experiment name, or output root.
 2. Read `FRAME.md`, `contract.json`, `agent_roster.md`, `reviewer_requests.md`, and existing flags if they exist.
-3. Write a reviewer `RUNNING` flag only after the reviewer has resolved the target session and output paths.
-4. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag for the target session exists.
-5. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, and then wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` when the request asks for review after Codex analysis is complete.
-6. A plain `EXECUTOR-RUNNING`, `SUPERVISOR-READY`, or partial report file is not enough to start review unless the user explicitly asks for live partial review.
-7. When the needed terminal flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, metrics/logs, result images, and `decision.md` are readable before writing the review.
-8. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
+3. If continuous waiting is requested and a persistent monitor/background watcher is available, start it before writing any review.
+4. Write a reviewer `RUNNING` flag only after the reviewer has resolved the target session and output paths.
+5. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag for the target session exists.
+6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, and then wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` when the request asks for review after Codex analysis is complete.
+7. A plain `EXECUTOR-RUNNING`, `SUPERVISOR-READY`, or partial report file is not enough to start review unless the user explicitly asks for live partial review.
+8. When the needed terminal flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, metrics/logs, result images, and `decision.md` are readable before writing the review.
+9. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
 
 For continuous waiting, repeat the flag check in this order each poll:
 
@@ -228,7 +233,7 @@ For continuous waiting, repeat the flag check in this order each poll:
 2. check executor terminal flag
 3. check supervisor terminal flag when required
 4. verify linked artifacts are readable
-5. write review only after the required terminal flags and artifacts exist
+5. emit one ready signal or write review only after the required terminal flags and artifacts exist
 ```
 
 If the environment cannot keep a long-running wait alive, write a `REVIEWER-BLOCKED` flag explaining that the wait was interrupted and list the exact flag paths the user or executor should ping on. Do not convert an interrupted wait into a review.
@@ -249,6 +254,11 @@ Reviewer waits must be bounded.
     "heartbeat_timeout_seconds": 600,
     "sequential_flag_gate": true,
     "require_artifact_for_done": true,
+    "continuous_monitor": {
+      "enabled": false,
+      "poll_interval_seconds": 60,
+      "ready_signal_once_per_session": true
+    },
     "allow_skip_on_timeout": true
   }
 }

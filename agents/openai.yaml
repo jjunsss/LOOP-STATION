@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Station"
+  short_description: "Run bounded adaptive goal loops."
+  default_prompt: "Use $loop-station to lock or reuse the loop frame, then act as supervisor, executor, or reviewer for the next bounded adaptive session."

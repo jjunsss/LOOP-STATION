@@ -1,0 +1,43 @@
+{
+  "frame_locked": true,
+  "goal": {
+    "summary": "",
+    "success_criteria": [],
+    "protection_criteria": []
+  },
+  "budget": {
+    "max_sessions": null,
+    "resource_pool": [],
+    "wall_time_limit": null,
+    "cost_limit": null
+  },
+  "work_unit_scope": {
+    "mode": "single|fixed_set|robustness_set",
+    "items": [],
+    "overfit_allowed": false
+  },
+  "collaboration_mode": {
+    "mode": "supervisor_only|executor_reviewer_split|external_review_flag",
+    "required_reviewers": [],
+    "optional_reviewers": []
+  },
+  "user_intervention_points": {
+    "requires_user_approval": [
+      "direct_maintained_source_edit",
+      "budget_increase",
+      "goal_change",
+      "scope_expansion"
+    ]
+  },
+  "loop_output_root": "",
+  "review_flag_format": "{AGENT_NAME}-SESSION{NNN}-{ROLE}-{STATUS}",
+  "review_wait_policy": {
+    "required_done_count": 1,
+    "optional_done_count": 0,
+    "start_timeout_seconds": 300,
+    "done_timeout_seconds": 1800,
+    "heartbeat_timeout_seconds": 600,
+    "allow_skip_on_timeout": true
+  },
+  "current_session": 1
+}

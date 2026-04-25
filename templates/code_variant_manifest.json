@@ -1,0 +1,22 @@
+{
+  "session": null,
+  "change_slug": "",
+  "reason": "",
+  "source_files": [
+    {
+      "path": "",
+      "sha256_before_copy": "",
+      "size_bytes": null
+    }
+  ],
+  "variant_files": [
+    {
+      "path": "",
+      "source_path": ""
+    }
+  ],
+  "entrypoint": "",
+  "config": "",
+  "command": "",
+  "created_at": ""
+}

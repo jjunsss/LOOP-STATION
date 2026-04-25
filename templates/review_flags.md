@@ -3,6 +3,14 @@
 | timestamp | flag | meaning | action |
 |---|---|---|---|
 
+## Session Flag Checklist
+
+- [ ] `EXECUTOR-RUNNING` flag written before execution
+- [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` terminal flag written after execution
+- [ ] executor terminal flag points to readable result artifacts
+- [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` terminal flag written after `decision.md`
+- [ ] supervisor terminal flag points to `decision.md` and the next action
+
 ## Sequential Gate Checklist
 
 - [ ] `reviewer_requests.md` updated

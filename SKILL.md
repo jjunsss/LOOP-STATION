@@ -101,7 +101,7 @@ The executor must:
 3. Write `executor_report.md` with results, changed values, changed implementation variants, commands, metrics, artifacts, and failures.
 4. Write `executor_proposal.md` with sharp analysis and the next proposed intervention.
 5. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
-6. Write an executor done flag after artifacts are complete, such as `CODEX5.5-SESSION050-EXECUTOR-DONE`.
+6. After execution finishes, write an executor terminal flag only after the result artifacts exist. Use `EXECUTOR-DONE` when `executor_report.md`, `executor_proposal.md`, metrics/log references, and produced artifacts are complete; otherwise use `EXECUTOR-BLOCKED` or `EXECUTOR-ABSTAIN` with the reason.
 7. Add reviewer requests at any time when a new review lens would improve the next decision.
 8. After requesting any reviewer, tester, or cooperating agent, enter the Sequential Collaboration Gate before writing `decision.md`, the next session slate, a final review summary, or any claim that review is complete.
 9. Wait for required reviewer flags according to `review_wait_policy`, not indefinitely.
@@ -258,7 +258,8 @@ At session end, the supervisor must:
    - stop or abstain
 5. If any required reviewer/tester/cooperating-agent request exists for the session, complete the Sequential Collaboration Gate before writing the session decision.
 6. Write a session decision note with rationale.
-7. Generate the next session slate only after the decision note exists.
+7. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists and points to the executor report, proposal, consumed review artifacts, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
+8. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
 
 ## Implementation Variant Rule
 
@@ -352,6 +353,16 @@ Each flag must include:
 - blocking reason if status is `BLOCKED` or `ABSTAIN`
 
 No agent may overwrite another agent's flag. The supervisor may consume flags, but should preserve them as provenance.
+
+For each executor-run session, Codex or any other executor must leave this minimum flag trail:
+
+```text
+{EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
+{EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
+```
+
+Use `BLOCKED` or `ABSTAIN` instead of `DONE` when the expected result artifacts or decision artifacts are not complete. Do not write a `DONE` flag early. A `DONE` flag is valid only when the matching artifact listed inside the flag exists and is readable.
 
 ## Resource Pool Rule
 

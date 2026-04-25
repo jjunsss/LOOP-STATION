@@ -8,6 +8,26 @@
 
 LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment: Codex runs bounded sessions, reviewers wait for terminal flags, feedback is written to shared artifacts, and the next session starts only after the loop has evidence.
 
+## Install
+
+### Codex
+
+Ask Codex:
+
+```text
+Install the Codex skill from https://github.com/jjunsss/LOOP-STATION as loop-station.
+```
+
+Restart Codex after installation.
+
+### Claude Code
+
+```text
+Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
+```
+
+Restart Claude Code after installation.
+
 ## Core Idea
 
 LOOP-STATION is for live feedback loops, not one-off prompts.
@@ -59,26 +79,6 @@ Every reviewed session follows this order:
 
 In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
 Codex internal validation and optional sub-agent checks.
-
-## Install
-
-### Codex
-
-Ask Codex:
-
-```text
-Install the Codex skill from https://github.com/jjunsss/LOOP-STATION as loop-station.
-```
-
-Restart Codex after installation.
-
-### Claude Code
-
-```text
-Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
-```
-
-Restart Claude Code after installation.
 
 ## What the Skill Does
 

@@ -6,7 +6,9 @@
     {
       "path": "",
       "sha256_before_copy": "",
-      "size_bytes": null
+      "size_bytes": null,
+      "protection_mode": "copied|untouched|direct_edit_approved",
+      "backup_path_if_direct_edit": ""
     }
   ],
   "variant_files": [
@@ -18,5 +20,7 @@
   "entrypoint": "",
   "config": "",
   "command": "",
+  "maintained_source_modified": false,
+  "restore_manifest": "",
   "created_at": ""
 }

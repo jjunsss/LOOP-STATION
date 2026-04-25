@@ -109,6 +109,7 @@ LOOP-STATION gives an agent a concrete operating protocol:
 - **Supports broad review/audit work**: visual image checks, metric trend analysis, log inspection, code/config audit, artifact completeness checks, and sub-agent assisted investigation.
 - **Uses named flags** to show which agent is running, done, waiting for review, or finished.
 - **Keeps code variants isolated** so loop-driven changes do not patch maintained source until the user explicitly promotes them.
+- **Protects original source and data**: experiments run through loop-owned variants or copies; direct maintained-source edits require explicit approval, exact pre-edit backups, and a restore manifest.
 - **Forces a decision point** at each session boundary: promote, keep, retire, continue, stop, or ask the user.
 
 Use it when the work needs adaptive loops rather than one-shot execution:
@@ -133,6 +134,16 @@ Examples:
 - **Code audit**: inspect generated scripts, config changes, code variants, manifests, diffs, and whether the implementation matches the stated experiment.
 - **Log and artifact audit**: verify commands, seeds, GPU/resource use, failed runs, missing files, stale outputs, and whether reviewer-linked artifacts are readable.
 - **Sub-agent assisted review**: ask one sub-agent to inspect code changes, another to compare visual outputs, another to summarize metrics or logs, then write one integrated review.
+
+## Original Protection Rule
+
+Experiments must not mutate the original project state by default.
+
+- Run code/config experiments through loop-owned variant folders, copied scripts, copied configs, or isolated output roots.
+- Record source file hashes and variant paths in `manifest.json` so every result is traceable to the original state.
+- Do not patch maintained source directly during the loop unless the user explicitly approves it.
+- If direct source modification is approved, create exact pre-edit backups and a restore manifest before editing.
+- The reviewer should audit manifests, backups, and restore paths when a session touches code/config.
 
 ## How to Command It
 
@@ -232,7 +243,9 @@ tokens rereading all historical logs.
 User intervention:
 Code changes and hyperparameter changes are allowed when scientifically justified.
 Prefer diverse, informative experiments over tiny one-parameter nudges. Ask before
-directly patching maintained source if an isolated variant is not enough.
+directly patching maintained source if an isolated variant is not enough. If a
+direct maintained-source edit is approved, create exact backups and a restore
+manifest before editing.
 ```
 
 ## How It Runs

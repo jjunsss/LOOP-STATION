@@ -434,7 +434,7 @@ After external reviewer feedback is available or skipped by policy, the supervis
 
 Loop-driven implementation changes must not patch maintained source in place.
 
-When a session needs code changes or script/workflow changes, create a separate loop-owned variant folder and run through that variant.
+When a session needs code changes or script/workflow changes, create a separate loop-owned variant folder and run through that variant. Treat original source files, original configs, and original data as protected inputs.
 
 Preferred layouts:
 
@@ -454,13 +454,22 @@ The `manifest.json` must record:
 
 - source files copied from maintained code
 - source file sha256 values before copy
+- whether each source file was copied, left untouched, or directly modified with approval
 - variant file paths
 - session id
 - change slug
 - reason for the implementation variant
 - command or config that uses the variant
 
-Do not overwrite maintained runtime files during the loop. If direct source modification is unavoidable, stop and ask the user first. If the user explicitly approves direct source modification, create exact pre-edit backups and a restore manifest before editing.
+Do not overwrite maintained runtime files during the loop. If direct source modification is unavoidable, stop and ask the user first. If the user explicitly approves direct source modification, create exact pre-edit backups and a restore manifest before editing. The restore manifest must list every edited file, backup path, pre-edit sha256, post-edit sha256 when available, restore command or procedure, approval reference, and session id.
+
+Reviewers should audit implementation sessions for original protection:
+
+- variant path exists and is outside maintained source
+- source hashes were recorded before copy
+- direct edits have explicit user approval
+- pre-edit backups exist for every directly edited maintained file
+- restore manifest is readable and points to restorable files
 
 ## Agent Collaboration Flags
 

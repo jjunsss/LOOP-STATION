@@ -1,0 +1,17 @@
+{
+  "session": null,
+  "approval_reference": "",
+  "reason_direct_edit_was_unavoidable": "",
+  "created_at": "",
+  "edited_files": [
+    {
+      "path": "",
+      "backup_path": "",
+      "sha256_before_edit": "",
+      "sha256_after_edit": "",
+      "restore_command_or_procedure": ""
+    }
+  ],
+  "restore_verified": false,
+  "notes": ""
+}

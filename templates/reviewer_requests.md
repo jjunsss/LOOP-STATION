@@ -36,6 +36,7 @@
   - generated code:
   - configs:
   - manifests / diffs:
+  - original protection / backups / restore manifest:
 - log/artifact audit:
   - commands:
   - resource usage:

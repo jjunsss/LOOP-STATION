@@ -47,6 +47,8 @@
 
 - files, diffs, manifests, or variants inspected:
 - implementation matches experiment: yes|no|uncertain
+- original source/data protected: yes|no|uncertain
+- backups / restore manifest verified when direct edits occurred:
 - code/config risks:
 
 ## Sub-Agent Findings

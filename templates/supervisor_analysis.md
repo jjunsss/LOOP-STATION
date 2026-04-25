@@ -38,6 +38,7 @@
 - historical logs or prior sessions reviewer should summarize for executor:
 - visual image checks requested:
 - code/config audit requested:
+- original protection / backup audit requested:
 - metric/log audit requested:
 - executor brief update requested:
 - suggested sub-agent split:

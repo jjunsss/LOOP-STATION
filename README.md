@@ -25,32 +25,17 @@ User intervention: changes that require explicit approval
 
 Once that frame is locked, agents can run, review, and continue from the same shared state instead of asking the setup questions again.
 
-## Features
+## Quick Start In Codex
 
-- Locks the goal frame before any loop starts.
-- Keeps a persistent `loop_station/` folder for contracts, decisions, reports, reviews, and flags.
-- Lets Codex, Claude Code, or another agent join as a reviewer without re-asking the user for the goal.
-- Requires executor reports with evidence, changed values, artifacts, failures, and next proposals.
-- Supports bounded reviewer waits so a loop can continue when a reviewer does not start or finish in time.
-- Keeps loop-driven code changes in isolated variant folders instead of patching maintained source in place.
-- Records enough evidence to promote, keep, retire, stop, or ask the user at each session boundary.
-
-## Install For Codex
-
-Clone or copy this repository into a Codex skill location.
-
-Project-local example:
+Install with Codex's skill installer:
 
 ```text
-<project>/
-  skills/
-    loop-station/
-      SKILL.md
-      agents/openai.yaml
-      templates/
+Use $skill-installer to install the skill from repo `jjunsss/LOOP-STATION`, path `.`, name `loop-station`.
 ```
 
-Then invoke it from Codex:
+Restart Codex after installation so the new skill is loaded.
+
+Then invoke LOOP-STATION with the required frame:
 
 ```text
 Use $loop-station for this goal-directed loop.
@@ -63,16 +48,17 @@ User intervention: ...
 
 If any required frame field is missing, LOOP-STATION should ask for only the missing parts and keep asking until the frame is complete.
 
-## Install For Claude Code
+## Claude Code
 
-Claude Code discovers skills from filesystem skill folders.
+Claude Code can use the same skill files, but it does not use Codex's `$skill-installer`. Add the repository contents to a Claude Code skill folder.
 
 Personal skill:
 
 ```text
-~/.claude/skills/loop-station/
-  SKILL.md
-  templates/
+~/.claude/skills/
+  loop-station/
+    SKILL.md
+    templates/
 ```
 
 Project skill:
@@ -88,7 +74,7 @@ Project skill:
 
 Restart Claude Code after adding or updating the skill so it reloads the skill list.
 
-You can ask Claude Code to use the skill directly:
+For reviewer-only use, give Claude Code this prompt:
 
 ```text
 Use LOOP-STATION in Reviewer / Project Review Mode.
@@ -117,6 +103,31 @@ Write:
 <loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
 <loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
 ```
+
+## Manual Install Fallback
+
+Use this only when an installer is not available.
+
+Codex project-local fallback:
+
+```text
+<project>/
+  skills/
+    loop-station/
+      SKILL.md
+      agents/openai.yaml
+      templates/
+```
+
+## Features
+
+- Locks the goal frame before any loop starts.
+- Keeps a persistent `loop_station/` folder for contracts, decisions, reports, reviews, and flags.
+- Lets Codex, Claude Code, or another agent join as a reviewer without re-asking the user for the goal.
+- Requires executor reports with evidence, changed values, artifacts, failures, and next proposals.
+- Supports bounded reviewer waits so a loop can continue when a reviewer does not start or finish in time.
+- Keeps loop-driven code changes in isolated variant folders instead of patching maintained source in place.
+- Records enough evidence to promote, keep, retire, stop, or ask the user at each session boundary.
 
 ## How It Works
 

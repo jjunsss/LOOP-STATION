@@ -85,10 +85,10 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 
 ## How to Command It
 
-Invoke LOOP-STATION with a small required frame:
+Invoke LOOP-STATION with a required frame. The frame can be short, but it can also include project context, prior loop references, metrics, compute budget, collaboration rules, and experiment preferences.
 
 ```text
-Use $loop-station for this goal-directed loop.
+$loop-station
 Goal: ...
 Budget: ...
 Work-unit scope: ...
@@ -107,6 +107,38 @@ User intervention: changes that require explicit approval
 ```
 
 If any required field is missing, LOOP-STATION should ask only for the missing parts and keep asking until the frame is complete. Once the frame is locked, later agents reuse the same shared state instead of asking the setup questions again.
+
+### Realistic Experiment Command
+
+```text
+$loop-station
+나는 이전에 feet loop를 만들어서 돌린 게 있어. 일단 이걸 확인해보고.
+
+Goal:
+200014의 사람 자체의 퀄리티를 높여야 할 것 같아. PSNR / LPIPS 같은
+수치를 활용할 수 있을 것 같고, foot floater 등도 애초에 사람 퀄리티가
+좋지 않아서 발생하는 것 같아. 가능하다면 매 session마다 수치적 + 시각적으로
+결과를 확인해줘.
+
+Budget:
+session 40. GPU 4개 모두 사용해도 되고, 1개의 session은 모든 GPU에서
+다양한 variants를 적용해서 돌리고 얻은 결과들을 모아서 분석하는 걸 기준으로 해.
+
+Work-unit scope:
+subject 200014를 중심으로 수치 지표와 렌더링 결과 이미지를 함께 비교해줘.
+
+Collaboration:
+GPT-5.5 xhigh를 활용해서 실험을 진행해도 좋고, 분석 시에는 sub-agent를
+다양한 목적으로 활용하면서 생성된 코드와 결과 이미지를 분석해서 정리해도 좋아.
+협력자로 CLAUDE를 활용할 건데, CLAUDE는 생성된 코드와 분석 설명을 확인해서
+자신의 견해와 개선 방향을 review하는 형태로 사용할 거야.
+
+User intervention:
+코드를 수정해도 좋고, 보다 scientific하게 성능을 개선할 수 있어도 좋아.
+하이퍼파라미터들을 변경해도 좋아. 다만 수치를 아주 조금씩 바꾸는 것보다,
+다양한 실험을 통해 개선을 보이는 것이 중요해. 유지 중인 원본 코드를 직접
+패치해야 한다면 먼저 확인해줘.
+```
 
 ## How It Runs
 

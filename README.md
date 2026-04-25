@@ -13,7 +13,7 @@ LOOP-STATION helps Codex, Claude Code, and other agents stay active around the s
 LOOP-STATION is for live feedback loops, not one-off prompts.
 
 ```text
-Codex runs -> writes flags and artifacts -> Claude reviews -> Codex consumes review -> next session
+Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next session
 ```
 
 Agents should stay in standby, monitor `loop_station/flags/`, and act only when the required `DONE`, `BLOCKED`, or `ABSTAIN` flags and linked artifacts exist.
@@ -114,7 +114,7 @@ Start the reviewer after Codex has begun producing loop artifacts:
 /loop-station
 Watch the running Codex LOOP-STATION experiment.
 Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-READY flags.
-When a session is ready, read the report, proposal, metrics, logs, and images.
+When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
 Keep watching for the next session.
 ```
@@ -170,10 +170,11 @@ The loop follows this rhythm:
 ```text
 lock the frame
 run a bounded session
-write evidence and proposal
+write executor evidence and proposal
+write Codex supervisor analysis
 request named review when useful
 wait within the review policy
-write a decision
+consume review and write a decision
 adapt, stop, or ask the user
 ```
 
@@ -188,6 +189,7 @@ loop_station/
     session_001/
       executor_report.md
       executor_proposal.md
+      supervisor_analysis.md
       decision.md
       reviewer_requests.md
       review_flags.md
@@ -198,8 +200,11 @@ loop_station/
     session_001/
       CODEX5.5-SESSION001-EXECUTOR-RUNNING.flag
       CODEX5.5-SESSION001-EXECUTOR-DONE.flag
+      CODEX5.5-SESSION001-SUPERVISOR-RUNNING.flag
+      CODEX5.5-SESSION001-SUPERVISOR-READY.flag
       CLAUDE-SESSION001-REVIEWER-RUNNING.flag
       CLAUDE-SESSION001-REVIEWER-DONE.flag
+      CODEX5.5-SESSION001-SUPERVISOR-DONE.flag
 ```
 
 If `contract.json` has `frame_locked: true`, later agents reuse the frame instead of asking for the goal, budget, scope, collaboration mode, or intervention boundaries again.
@@ -215,8 +220,11 @@ Examples:
 ```text
 CODEX5.5-SESSION050-EXECUTOR-RUNNING
 CODEX5.5-SESSION050-EXECUTOR-DONE
+CODEX5.5-SESSION050-SUPERVISOR-RUNNING
+CODEX5.5-SESSION050-SUPERVISOR-READY
 CLAUDE-SESSION050-REVIEWER-RUNNING
 CLAUDE-SESSION050-REVIEWER-DONE
+CODEX5.5-SESSION050-SUPERVISOR-DONE
 ```
 
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
@@ -235,7 +243,7 @@ Codex uses the review when deciding the next session
 
 The `loop_station/` folder is created by the running loop, but Claude may not know where it is or what the experiment is about. Give Claude enough context to find the run and understand what kind of review you want.
 
-If Claude is invoked before Codex finishes the current session, Claude should stay in reviewer standby. It should poll the relevant `flags/session_{NNN}/` folder and wait until Codex has written `EXECUTOR-DONE` plus `SUPERVISOR-READY`, and the linked executor artifacts are readable. It should not modify `FRAME.md`, `contract.json`, code, configs, or session artifacts while waiting.
+If Claude is invoked before Codex finishes the current session, Claude should stay in reviewer standby. It should poll the relevant `flags/session_{NNN}/` folder and wait until Codex has written `EXECUTOR-DONE` plus `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has already reviewed its own results, written its analysis/explanation, and prepared the artifacts for external review. Claude should not modify `FRAME.md`, `contract.json`, code, configs, or session artifacts while waiting.
 
 If the request asks Claude to keep waiting continuously, Claude should use its available Monitor/background watcher tool immediately. The watcher should poll for review-ready flags and linked artifacts, then trigger one review per ready session.
 
@@ -260,9 +268,9 @@ Reviewer instructions:
 - FRAME.md와 contract.json이 있으면 goal, budget, scope를 다시 묻지 말고 그대로 사용해.
 - Codex가 아직 현재 session을 끝내지 않았다면 결과가 나올 때까지 standby로 대기해.
 - 계속 대기하라는 요청이면 사용 가능한 Monitor/background watcher를 즉시 띄워서 session ready flag를 폴링해.
-- `EXECUTOR-DONE`과 `SUPERVISOR-READY` flag가 생기고, 연결된 report/proposal/metrics/images를 읽을 수 있을 때만 review를 작성해.
+- `EXECUTOR-DONE`과 `SUPERVISOR-READY` flag가 생기고, 연결된 report/proposal/supervisor_analysis/metrics/images를 읽을 수 있을 때만 review를 작성해.
 - review가 끝나면 Codex가 그 review를 소비해서 decision.md와 `SUPERVISOR-DONE`을 작성하는 순서야.
-- 최신 executor_report.md, executor_proposal.md, reviewer_requests.md, metrics,
+- 최신 executor_report.md, executor_proposal.md, supervisor_analysis.md, reviewer_requests.md, metrics,
   logs, diffs, generated code, result images, and artifacts를 읽어.
 - 실험을 직접 실행하지 말고 reviewer로만 행동해.
 - 코드 수정이나 다음 session 실행은 하지 마.

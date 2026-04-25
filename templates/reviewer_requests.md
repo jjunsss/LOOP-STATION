@@ -27,6 +27,7 @@
 - Review starts only after:
   - [ ] executor terminal flag observed
   - [ ] `SUPERVISOR-READY` observed
+  - [ ] `supervisor_analysis.md` is readable
   - [ ] linked executor artifacts are readable
   - [ ] linked decision artifacts are readable only for explicit post-decision audit
 - Poll paths:

@@ -8,6 +8,9 @@
 - [ ] `EXECUTOR-RUNNING` flag written before execution
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` terminal flag written after execution
 - [ ] executor terminal flag points to readable result artifacts
+- [ ] `SUPERVISOR-RUNNING` flag written before Codex self-review/verification
+- [ ] `supervisor_analysis.md` written after Codex self-review/verification
+- [ ] `SUPERVISOR-READY` flag written after supervisor analysis and before external review
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` terminal flag written after `decision.md`
 - [ ] supervisor terminal flag points to `decision.md` and the next action
 
@@ -30,6 +33,7 @@
 - [ ] reviewer did not modify `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned artifacts
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` observed before review
 - [ ] `SUPERVISOR-READY` observed before normal review
+- [ ] `supervisor_analysis.md` verified readable before normal review
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` observed only for explicit post-decision audit
 - [ ] linked artifacts verified readable before review
 - [ ] standby interruption recorded as `REVIEWER-BLOCKED` instead of a premature review

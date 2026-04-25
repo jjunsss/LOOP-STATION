@@ -60,6 +60,7 @@ loop_station/
     session_{NNN}/
       executor_report.md
       executor_proposal.md
+      supervisor_analysis.md
       decision.md
       reviewer_requests.md
       review_flags.md
@@ -102,7 +103,7 @@ The executor must:
 4. Write `executor_proposal.md` with sharp analysis and the next proposed intervention.
 5. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
 6. After execution finishes, write an executor terminal flag only after the result artifacts exist. Use `EXECUTOR-DONE` when `executor_report.md`, `executor_proposal.md`, metrics/log references, and produced artifacts are complete; otherwise use `EXECUTOR-BLOCKED` or `EXECUTOR-ABSTAIN` with the reason.
-7. Add reviewer requests at any time when a new review lens would improve the next decision.
+7. Hand off to the supervisor self-review phase before external reviewers are allowed to act.
 8. After requesting any reviewer, tester, or cooperating agent, enter the Sequential Collaboration Gate before writing `decision.md`, the next session slate, a final review summary, or any claim that review is complete.
 9. Wait for required reviewer flags according to `review_wait_policy`, not indefinitely.
 10. If reviewer timeout rules allow skipping, record the timeout and proceed.
@@ -110,11 +111,26 @@ The executor must:
 
 The executor's own report must include analysis, not only a metric dump. It should identify surprising results, harmful directions, promising directions, and why the next intervention is justified.
 
+### Supervisor Self-Review Phase
+
+After `EXECUTOR-DONE` and before `SUPERVISOR-READY`, Codex or the active supervisor must review its own session output. This is not the external reviewer step.
+
+The supervisor must:
+
+1. Write `SUPERVISOR-RUNNING` when it starts self-review.
+2. Read `executor_report.md`, `executor_proposal.md`, metrics, logs, result images, code diffs, manifests, and prior decisions.
+3. Use sub-agents or helper reviewers when available to verify generated code, metrics, visual artifacts, logs, and variant summaries.
+4. Write `supervisor_analysis.md` with the supervisor's own explanation, trend interpretation, verification notes, risks, and recommended reviewer questions.
+5. Update `reviewer_requests.md` with exact artifacts the external reviewer should inspect.
+6. Only after `supervisor_analysis.md`, `executor_report.md`, `executor_proposal.md`, and referenced artifacts are readable, write `SUPERVISOR-READY`.
+
+`SUPERVISOR-READY` means Codex has already executed the session and completed its own analysis/verification. It does not mean the session is finally decided. The final session decision comes later, after reviewer feedback is consumed.
+
 ### Dynamic Reviewer Requests
 
-The executor may request additional reviewers at any time during a session.
+The supervisor may request additional reviewers after executor artifacts exist and Codex self-review has started. The executor may recommend reviewer requests, but external reviewer handoff should be finalized by the supervisor after `supervisor_analysis.md` exists.
 
-When adding a reviewer, the executor must update:
+When adding a reviewer, the supervisor must update:
 
 ```text
 loop_station/agent_roster.md
@@ -132,24 +148,24 @@ Each reviewer request must include:
 - timeout policy
 - whether the reviewer is required or optional for the next session
 
-The executor must also write a request flag:
+The supervisor must also write a request flag after self-review is complete:
 
 ```text
-{loop_output_root}/loop_station/flags/session_{NNN}/{EXECUTOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
+{loop_output_root}/loop_station/flags/session_{NNN}/{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
 ```
 
-The request flag should point to `reviewer_requests.md`.
+The request flag should point to `reviewer_requests.md`, `supervisor_analysis.md`, `executor_report.md`, `executor_proposal.md`, and the artifacts the reviewer must inspect.
 
 ### Sequential Collaboration Gate
 
-When the executor asks another agent to review, test, or collaborate, it must not immediately continue as if the review has happened. It must consume the collaboration flags in order.
+When the supervisor asks another agent to review, test, or collaborate, it must not immediately continue as if the review has happened. It must consume the collaboration flags in order.
 
 The gate is mandatory for every requested reviewer or tester marked `required`, and recommended for optional reviewers when their result is expected to influence the next decision.
 
 Required sequence:
 
 1. Write or update `agent_roster.md` and `sessions/session_{NNN}/reviewer_requests.md`.
-2. Write `{EXECUTOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag` pointing to the request file, expected artifacts, and expected reviewer output path.
+2. Write `{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag` only after the Supervisor Self-Review Phase is complete, pointing to the request file, `supervisor_analysis.md`, expected artifacts, and expected reviewer output path.
 3. Check the exact `flags/session_{NNN}/` directory and expected `reviews/session_{NNN}/` path before proceeding.
 4. Wait for a requested reviewer to write one of `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` within `start_timeout_seconds`.
 5. If the reviewer writes `RUNNING`, keep waiting for a terminal flag: `DONE`, `BLOCKED`, or `ABSTAIN`. A `HEARTBEAT` only proves the reviewer is still active; it is not terminal.
@@ -171,6 +187,7 @@ The reviewer reads:
 - `loop_station/contract.json`
 - the latest `executor_report.md`
 - the latest `executor_proposal.md`
+- the latest `supervisor_analysis.md`
 - changed values, code-variant manifests, diffs, metrics, logs, and review artifacts referenced by the executor
 - prior reviewer notes for the session when present
 
@@ -223,7 +240,7 @@ Standby sequence:
 5. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag and `SUPERVISOR-READY` for the target session exist.
 6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, then wait for `SUPERVISOR-READY` when the request asks for Claude/reviewer input before Codex writes the final decision. Wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` only when the user explicitly asks for a post-decision audit.
 7. A plain `EXECUTOR-RUNNING`, partial report file, or `SUPERVISOR-READY` without `EXECUTOR-DONE` is not enough to start review unless the user explicitly asks for live partial review.
-8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, metrics/logs, and result images are readable before writing the review. Require `decision.md` only for explicit post-decision audit.
+8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, `supervisor_analysis.md`, metrics/logs, and result images are readable before writing the review. Require `decision.md` only for explicit post-decision audit.
 9. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
 
 For continuous waiting, repeat the flag check in this order each poll:
@@ -284,9 +301,9 @@ Timeouts are reviewer coordination failures, not proof that the session result i
 
 Each session must produce a candidate slate, run or intentionally skip it, and end with an intervention decision.
 
-At session end, the supervisor must:
+Before external reviewer handoff, the supervisor must:
 
-1. Read metrics, logs, review artifacts, run configs, and reviewer notes.
+1. Read metrics, logs, result artifacts, run configs, executor reports, executor proposals, and prior reviewer notes.
 2. Compare against baseline, current best, previous session, and user goal.
 3. Classify directions as `promote`, `keep`, `retire`, `needs_more_evidence`, `needs_code_variant`, `stop`, or `ask_user`.
 4. Decide the next action:
@@ -297,10 +314,16 @@ At session end, the supervisor must:
    - expand or reduce work-unit scope
    - wait for review
    - stop or abstain
-5. If any required reviewer/tester/cooperating-agent request exists for the session, complete the Sequential Collaboration Gate before writing the session decision.
-6. Write a session decision note with rationale.
-7. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists and points to the executor report, proposal, consumed review artifacts, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
-8. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
+5. Write `supervisor_analysis.md` with rationale, verification notes, and the review questions.
+6. Write `SUPERVISOR-READY` for external review.
+
+After external reviewer feedback is available or skipped by policy, the supervisor must:
+
+1. Complete the Sequential Collaboration Gate for any required reviewer/tester/cooperating-agent request.
+2. Read consumed review artifacts and record them in `review_flags.md`.
+3. Write `decision.md` with the integrated judgment and next action.
+4. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists and points to the executor report, proposal, supervisor analysis, consumed review artifacts, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
+5. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
 
 ## Implementation Variant Rule
 
@@ -349,6 +372,7 @@ Examples:
 ```text
 CODEX5.5-SESSION050-EXECUTOR-RUNNING
 CODEX5.5-SESSION050-EXECUTOR-DONE
+CODEX5.5-SESSION050-SUPERVISOR-RUNNING
 CODEX5.5-SESSION050-SUPERVISOR-READY
 CLAUDE-SESSION050-REVIEWER-RUNNING
 CLAUDE-SESSION050-REVIEWER-HEARTBEAT
@@ -403,6 +427,7 @@ For each executor-run session, Codex or any other executor must leave this minim
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-RUNNING.flag
 {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
 ```
 
@@ -411,6 +436,7 @@ For a reviewed session, the normal order is:
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-RUNNING.flag
 {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
 {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-RUNNING.flag
 {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
@@ -441,6 +467,7 @@ loop_station/contract.json
 loop_station/agent_roster.md
 loop_station/sessions/session_{NNN}/executor_report.md
 loop_station/sessions/session_{NNN}/executor_proposal.md
+loop_station/sessions/session_{NNN}/supervisor_analysis.md
 loop_station/sessions/session_{NNN}/decision.md
 loop_station/sessions/session_{NNN}/reviewer_requests.md
 loop_station/sessions/session_{NNN}/review_flags.md

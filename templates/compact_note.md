@@ -11,6 +11,7 @@
 
 - what changed:
 - what was decided:
+- historical trend/log summary updated:
+- executor brief updated:
 - what remains unresolved:
 - what the next agent should read:
-

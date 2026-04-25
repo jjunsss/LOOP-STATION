@@ -60,6 +60,8 @@ loop_station/
     ROLLING_SUMMARY.md
     SESSION_LEDGER.md
     COMPACT_HANDOFF.md
+    EXECUTOR_BRIEF.md
+    LOG_TREND_SUMMARY.md
     REVIEWER_ROLLUP.md
     compact/
       session_{NNN}-{AGENT_NAME}.md
@@ -106,6 +108,8 @@ Maintain these files throughout the loop:
 loop_station/summaries/ROLLING_SUMMARY.md
 loop_station/summaries/SESSION_LEDGER.md
 loop_station/summaries/COMPACT_HANDOFF.md
+loop_station/summaries/EXECUTOR_BRIEF.md
+loop_station/summaries/LOG_TREND_SUMMARY.md
 loop_station/summaries/REVIEWER_ROLLUP.md
 loop_station/summaries/compact/session_{NNN}-{AGENT_NAME}.md
 ```
@@ -114,7 +118,9 @@ Before any agent intentionally compacts context, ends a long standby period, or 
 
 Codex or the active supervisor must update `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and `COMPACT_HANDOFF.md` after every completed session decision and before writing `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, `SUPERVISOR-ABSTAIN`, or `SUPERVISOR-REPAIRED`.
 
-Reviewer agents, including Claude Code, must update `REVIEWER_ROLLUP.md` and a per-compact note under `summaries/compact/` after writing `REVIEWER-DONE`, `REVIEWER-BLOCKED`, or `REVIEWER-ABSTAIN` when they have enough context to summarize. They must not edit executor-owned session artifacts while doing this.
+Reviewer agents, including Claude Code, must update `REVIEWER_ROLLUP.md`, `LOG_TREND_SUMMARY.md`, `EXECUTOR_BRIEF.md`, and a per-compact note under `summaries/compact/` after writing `REVIEWER-DONE`, `REVIEWER-BLOCKED`, or `REVIEWER-ABSTAIN` when they have enough context to summarize. They must not edit executor-owned session artifacts while doing this.
+
+The reviewer-owned summaries are a token-saving handoff for the executor. The executor should not reread all historical logs by default when starting a new session. It should first read `EXECUTOR_BRIEF.md`, `LOG_TREND_SUMMARY.md`, `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and the latest decision/review artifacts. It should open older raw logs only when the summaries conflict, a claim needs verification, or the next experiment depends on a specific historical detail.
 
 After a clean session boundary, an agent should compact or recommend compaction when one of these is true:
 
@@ -140,10 +146,12 @@ When resuming after compaction, read in this order:
 1. `loop_station/contract.json`
 2. `loop_station/FRAME.md`
 3. `loop_station/summaries/COMPACT_HANDOFF.md`
-4. `loop_station/summaries/ROLLING_SUMMARY.md`
-5. `loop_station/summaries/SESSION_LEDGER.md`
-6. latest `sessions/session_{NNN}/decision.md`
-7. latest relevant reviewer artifact
+4. `loop_station/summaries/EXECUTOR_BRIEF.md`
+5. `loop_station/summaries/LOG_TREND_SUMMARY.md`
+6. `loop_station/summaries/ROLLING_SUMMARY.md`
+7. `loop_station/summaries/SESSION_LEDGER.md`
+8. latest `sessions/session_{NNN}/decision.md`
+9. latest relevant reviewer artifact
 
 If summaries disagree with session artifacts, trust the session artifacts and repair the summaries before continuing.
 
@@ -157,7 +165,7 @@ Use this mode when the agent is allowed to run sessions or prepare the next sess
 
 The executor must:
 
-1. Read `loop_station/contract.json`, `loop_station/summaries/COMPACT_HANDOFF.md`, prior `decision.md`, prior reviewer notes, metrics, logs, and review artifacts.
+1. Read `loop_station/contract.json`, `loop_station/summaries/COMPACT_HANDOFF.md`, `loop_station/summaries/EXECUTOR_BRIEF.md`, `loop_station/summaries/LOG_TREND_SUMMARY.md`, prior `decision.md`, prior reviewer notes, metrics summaries, and review artifacts. Do not reread all historical raw logs by default.
 2. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
 3. Run or supervise the session within the locked frame.
 4. Write `executor_report.md` with results, changed values, changed implementation variants, commands, metrics, artifacts, and failures.
@@ -305,7 +313,9 @@ The reviewer must also write a flag:
 {loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
 ```
 
-After writing a terminal reviewer artifact, update `loop_station/summaries/REVIEWER_ROLLUP.md` and a compact note under `loop_station/summaries/compact/` when the environment allows file edits. Keep this update concise and do not modify executor-owned artifacts.
+After writing a terminal reviewer artifact, update `loop_station/summaries/REVIEWER_ROLLUP.md`, `loop_station/summaries/LOG_TREND_SUMMARY.md`, `loop_station/summaries/EXECUTOR_BRIEF.md`, and a compact note under `loop_station/summaries/compact/` when the environment allows file edits. Keep this update concise and do not modify executor-owned artifacts.
+
+The reviewer should read prior summaries and the relevant historical logs/artifacts needed to detect trends, then summarize those trends for the executor. This lets the executor design the next session from the brief instead of spending tokens rereading every prior log.
 
 Before doing review work, the reviewer should write a start flag:
 
@@ -618,6 +628,8 @@ loop_station/agent_roster.md
 loop_station/summaries/ROLLING_SUMMARY.md
 loop_station/summaries/SESSION_LEDGER.md
 loop_station/summaries/COMPACT_HANDOFF.md
+loop_station/summaries/EXECUTOR_BRIEF.md
+loop_station/summaries/LOG_TREND_SUMMARY.md
 loop_station/summaries/REVIEWER_ROLLUP.md
 loop_station/summaries/compact/
 loop_station/sessions/session_{NNN}/executor_report.md

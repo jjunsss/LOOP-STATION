@@ -35,9 +35,11 @@
 ## Reviewer Handoff
 
 - artifacts reviewer must inspect:
+- historical logs or prior sessions reviewer should summarize for executor:
 - visual image checks requested:
 - code/config audit requested:
 - metric/log audit requested:
+- executor brief update requested:
 - suggested sub-agent split:
 - specific questions for reviewer:
 - what would change the next decision:

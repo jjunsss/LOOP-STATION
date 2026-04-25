@@ -44,6 +44,8 @@
 - [ ] `summaries/ROLLING_SUMMARY.md` updated before supervisor terminal flag
 - [ ] `summaries/SESSION_LEDGER.md` updated before supervisor terminal flag
 - [ ] `summaries/COMPACT_HANDOFF.md` updated before supervisor terminal flag
+- [ ] reviewer updated `summaries/LOG_TREND_SUMMARY.md` when reviewer could write files
+- [ ] reviewer updated `summaries/EXECUTOR_BRIEF.md` when reviewer could write files
 - [ ] next session not prepared before `SUPERVISOR-DONE`
 - [ ] no next session slate or next `EXECUTOR-RUNNING` exists before reviewer consumption
 
@@ -51,6 +53,8 @@
 
 - [ ] compact happens only after terminal flags and summary updates
 - [ ] `COMPACT_HANDOFF.md` lists current best, risks, budget, and exact next action
+- [ ] `EXECUTOR_BRIEF.md` is sufficient for the executor to plan without rereading all raw logs
+- [ ] `LOG_TREND_SUMMARY.md` lists which sessions/logs are already summarized
 - [ ] reviewer compact notes updated when reviewer can write files
 - [ ] resume read order recorded
 

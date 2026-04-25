@@ -18,6 +18,7 @@
 - metric trends:
 - visual trends:
 - implementation/config trends:
+- log/failure trends:
 - reviewer trends:
 
 ## Promoted / Kept / Retired
@@ -36,4 +37,3 @@
 - next session recommendation:
 - why this is the highest-value next move:
 - artifacts to inspect first:
-

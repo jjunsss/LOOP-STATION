@@ -149,7 +149,7 @@ Budget: 40 sessions, use up to 4 GPUs.
 Work-unit scope: compare metrics and rendered images each session.
 Collaboration: Codex runs experiments; Claude waits and reviews after each Codex session is done.
 User intervention: ask before direct maintained-source edits.
-Memory: update loop_station/summaries after each session and compact only at clean boundaries.
+Memory: reviewer summarizes prior trends/logs for Codex in loop_station/summaries; compact only at clean boundaries.
 ```
 
 Start the reviewer after Codex has begun producing loop artifacts:
@@ -160,6 +160,7 @@ Watch the running Codex LOOP-STATION experiment.
 Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-READY flags.
 When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
 Perform visual image checks and code/config audit when relevant. Use sub-agents for separate audit axes if available.
+Summarize prior experiment trends and relevant logs so Codex can plan without rereading all historical raw logs.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
 Update reviewer rollup/compact notes if file writes are available, then compact only after the review is durable.
 Keep watching for the next session.
@@ -224,6 +225,9 @@ the executor path.
 Both agents should keep `loop_station/summaries/` current so context compaction
 does not lose the experiment direction. Compact only after terminal flags and
 summary updates are durable.
+CLAUDE should maintain `LOG_TREND_SUMMARY.md` and `EXECUTOR_BRIEF.md` from prior
+sessions and logs so CODEX can use those summaries first instead of spending
+tokens rereading all historical logs.
 
 User intervention:
 Code changes and hyperparameter changes are allowed when scientifically justified.
@@ -262,6 +266,8 @@ loop_station/
     ROLLING_SUMMARY.md
     SESSION_LEDGER.md
     COMPACT_HANDOFF.md
+    EXECUTOR_BRIEF.md
+    LOG_TREND_SUMMARY.md
     REVIEWER_ROLLUP.md
     compact/
       session_001-CODEX5.5.md
@@ -303,9 +309,19 @@ Codex updates these after every completed session decision and before `SUPERVISO
 Claude or another reviewer updates these after `REVIEWER-DONE` when file edits are available:
 
 - `summaries/REVIEWER_ROLLUP.md`: cumulative reviewer conclusions and recurring concerns.
+- `summaries/LOG_TREND_SUMMARY.md`: reviewer-maintained summary of prior logs, failures, metric shifts, and recurring patterns.
+- `summaries/EXECUTOR_BRIEF.md`: short next-session brief so Codex can design without rereading every historical log.
 - `summaries/compact/session_{NNN}-{AGENT_NAME}.md`: compact note for that review/session.
 
-Codex and Claude should compact, or recommend compaction, only at a clean boundary: after terminal flags and summary updates. They should not compact during execution, review, or supervisor synthesis. After compact, resume by reading `contract.json`, `FRAME.md`, `summaries/COMPACT_HANDOFF.md`, `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and then the latest session artifacts.
+The reviewer should spend the tokens needed to inspect previous summaries and relevant historical logs, then write the trend/log digest. Codex should not reread all old logs by default when a new session starts. It should first read `EXECUTOR_BRIEF.md`, `LOG_TREND_SUMMARY.md`, `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and the latest decision/review artifacts. Codex opens raw historical logs only when a summary is inconsistent, incomplete, or a specific old detail affects the next design.
+
+Codex and Claude should compact, or recommend compaction, only at a clean boundary: after terminal flags and summary updates. They should not compact during execution, review, or supervisor synthesis. After compact, resume by reading `contract.json`, `FRAME.md`, `summaries/COMPACT_HANDOFF.md`, `summaries/EXECUTOR_BRIEF.md`, `summaries/LOG_TREND_SUMMARY.md`, `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and then the latest session artifacts.
+
+## Operational Scale
+
+LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude stayed in standby through monitor tooling and woke when review-ready flags appeared.
+
+This is why reviewer-maintained summaries are part of the protocol: the reviewer absorbs the cost of reading historical logs and trends, then leaves compact executor briefs so the next Codex session can plan from durable summaries instead of replaying the whole history.
 
 Flags use this naming pattern:
 

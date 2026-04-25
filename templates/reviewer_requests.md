@@ -17,6 +17,13 @@
 
 ## Suggested Audit Axes
 
+- historical trend/log digest:
+  - prior sessions to summarize:
+  - logs to inspect:
+  - summaries to update:
+    - `summaries/LOG_TREND_SUMMARY.md`
+    - `summaries/EXECUTOR_BRIEF.md`
+  - raw logs the executor should not need to reread:
 - visual image check:
   - result images / panels:
   - crops or regions:
@@ -66,4 +73,8 @@
   - flags:
   - reviews:
   - session artifacts:
+- Before terminal review completion, update token-saving summaries when file writes are available:
+  - [ ] `summaries/LOG_TREND_SUMMARY.md`
+  - [ ] `summaries/EXECUTOR_BRIEF.md`
+  - [ ] `summaries/REVIEWER_ROLLUP.md`
 - If interrupted, write `REVIEWER-BLOCKED` with the last observed flags and do not write a review.

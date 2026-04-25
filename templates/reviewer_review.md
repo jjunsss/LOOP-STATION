@@ -34,6 +34,15 @@
 - variance or confounds:
 - command/log/resource issues:
 
+## Historical Trend / Log Digest For Executor
+
+- prior sessions reviewed:
+- historical logs inspected:
+- recurring trends:
+- failures or warnings that matter for next design:
+- raw logs the executor can skip by default:
+- raw logs the executor should reopen if needed:
+
 ## Code / Config Audit
 
 - files, diffs, manifests, or variants inspected:
@@ -66,6 +75,12 @@
 ## Recommended Next Action
 
 - 
+
+## Summary Updates
+
+- `LOG_TREND_SUMMARY.md` updated: yes|no
+- `EXECUTOR_BRIEF.md` updated: yes|no
+- `REVIEWER_ROLLUP.md` updated: yes|no
 
 ## Flag
 

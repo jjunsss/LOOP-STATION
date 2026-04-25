@@ -28,3 +28,10 @@
 ## Reviewer Requests For Next Session
 
 - 
+
+## Executor Token-Saving Digest
+
+- historical logs reviewed:
+- log trends summarized in `LOG_TREND_SUMMARY.md`:
+- executor-facing brief updated in `EXECUTOR_BRIEF.md`:
+- raw logs the executor should reopen only if needed:

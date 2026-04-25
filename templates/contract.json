@@ -59,7 +59,11 @@
     "session_ledger_required": true,
     "rolling_summary_required": true,
     "compact_handoff_required": true,
-    "reviewer_rollup_required_when_reviewer_can_write": true
+    "executor_brief_required": true,
+    "log_trend_summary_required": true,
+    "reviewer_rollup_required_when_reviewer_can_write": true,
+    "reviewer_owns_log_trend_digest": true,
+    "executor_avoids_historical_raw_log_scan_by_default": true
   },
   "compaction_policy": {
     "enabled": true,
@@ -71,6 +75,8 @@
       "loop_station/contract.json",
       "loop_station/FRAME.md",
       "loop_station/summaries/COMPACT_HANDOFF.md",
+      "loop_station/summaries/EXECUTOR_BRIEF.md",
+      "loop_station/summaries/LOG_TREND_SUMMARY.md",
       "loop_station/summaries/ROLLING_SUMMARY.md",
       "loop_station/summaries/SESSION_LEDGER.md",
       "latest sessions/session_{NNN}/decision.md",

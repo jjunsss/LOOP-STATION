@@ -37,8 +37,19 @@
 - [ ] `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` observed before start timeout, or timeout recorded
 - [ ] terminal reviewer flag observed, or timeout policy applied
 - [ ] `DONE` review artifact exists and is readable before counting it
+- [ ] required `REVIEWER-DONE` timestamp is earlier than `SUPERVISOR-DONE`
 - [ ] consumed reviewer artifacts recorded before `decision.md`
 - [ ] next session not prepared before `SUPERVISOR-DONE`
+- [ ] no next session slate or next `EXECUTOR-RUNNING` exists before reviewer consumption
+
+## Protocol Violations
+
+- `SUPERVISOR-DONE_BEFORE_REVIEWER-DONE`:
+- `NEXT_SESSION_PREPARED_BEFORE_REVIEW_CONSUMED`:
+- `SUPERVISOR-VIOLATION` flag:
+- consumed late reviewer artifact:
+- repair action:
+- `SUPERVISOR-REPAIRED` flag:
 
 ## Reviewer Standby Checklist
 

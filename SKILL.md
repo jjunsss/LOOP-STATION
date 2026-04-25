@@ -162,6 +162,22 @@ When the supervisor asks another agent to review, test, or collaborate, it must 
 
 The gate is mandatory for every requested reviewer or tester marked `required`, and recommended for optional reviewers when their result is expected to influence the next decision.
 
+Strict ordering invariant:
+
+- Do not write `SUPERVISOR-DONE`, prepare the next session slate, or start the
+  next `EXECUTOR-RUNNING` until every required reviewer has a terminal flag
+  (`REVIEWER-DONE`, `REVIEWER-BLOCKED`, `REVIEWER-ABSTAIN`) or the locked timeout
+  policy has been recorded.
+- For a `REVIEWER-DONE` terminal flag, the matching review artifact must exist,
+  be readable, be read by Codex, and be recorded in `review_flags.md` before
+  `decision.md` and `SUPERVISOR-DONE`.
+- If an existing `SUPERVISOR-DONE` timestamp is earlier than a required
+  `REVIEWER-DONE` timestamp for the same session, treat the session as
+  out-of-order. Do not overwrite the early flag. Write `SUPERVISOR-VIOLATION`,
+  consume the review, update `decision.md` or write a repair decision, record the
+  repair in `review_flags.md`, then write `SUPERVISOR-REPAIRED` before any next
+  session preparation.
+
 Required sequence:
 
 1. Write or update `agent_roster.md` and `sessions/session_{NNN}/reviewer_requests.md`.
@@ -171,7 +187,7 @@ Required sequence:
 5. If the reviewer writes `RUNNING`, keep waiting for a terminal flag: `DONE`, `BLOCKED`, or `ABSTAIN`. A `HEARTBEAT` only proves the reviewer is still active; it is not terminal.
 6. If the reviewer writes `DONE`, verify that the expected review artifact exists and is readable. A `DONE` flag without the review artifact is incomplete and must be recorded in `review_flags.md`.
 7. Read terminal review artifacts in flag timestamp order and record what was consumed in `review_flags.md`.
-8. Only after the required done count is met, or after the locked timeout policy explicitly allows skipping, write `decision.md`, generate the next session slate, or summarize the review outcome.
+8. Only after the required done count is met, or after the locked timeout policy explicitly allows skipping, and after the strict ordering invariant is satisfied, write `decision.md`, generate the next session slate, or summarize the review outcome.
 
 If the executor cannot find the expected `loop_station/` folder, flag directory, or review artifact path, it must search the project for the active `loop_station/` folder and record the resolved path before continuing. If the path is still ambiguous, stop with `ask_user` instead of fabricating a review result.
 
@@ -404,6 +420,12 @@ Codex internal validation and optional sub-agent checks.
 
 Do not reorder these phases. In particular, `SUPERVISOR-READY` is the reviewer request signal and is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed and `decision.md` exists. The next session must not start before `SUPERVISOR-DONE`.
 
+If `SUPERVISOR-DONE` appears before the required reviewer terminal flag for the
+same session, the session is invalid until repaired. Codex must not use that
+decision to prepare the next session. The repair path is
+`SUPERVISOR-VIOLATION -> consume review -> update decision/repair artifact ->
+SUPERVISOR-REPAIRED`.
+
 Use this normalized format:
 
 ```text
@@ -442,8 +464,10 @@ Allowed statuses:
 - `BLOCKED`
 - `ABSTAIN`
 - `TIMEOUT`
+- `VIOLATION`
+- `REPAIRED`
 
-Agents should write a `RUNNING` flag when they start work, then replace nothing. Long-running reviewers may add `HEARTBEAT` flags. They should add a separate terminal flag (`DONE`, `BLOCKED`, or `ABSTAIN`) when finished. The supervisor/executor may add `TIMEOUT` flags when bounded waits expire. Flags are append-only provenance.
+Agents should write a `RUNNING` flag when they start work, then replace nothing. Long-running reviewers may add `HEARTBEAT` flags. They should add a separate terminal flag (`DONE`, `BLOCKED`, or `ABSTAIN`) when finished. The supervisor/executor may add `TIMEOUT` flags when bounded waits expire. `VIOLATION` and `REPAIRED` are reserved for protocol-order repair. Flags are append-only provenance.
 
 Recommended flag locations:
 

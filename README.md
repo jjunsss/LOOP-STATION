@@ -80,6 +80,18 @@ Every reviewed session follows this order:
 In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
 Codex internal validation and optional sub-agent checks.
 
+Hard ordering invariant:
+
+- `SUPERVISOR-DONE` is invalid until Codex has observed the expected reviewer
+  terminal flag and consumed the reviewer artifact or recorded the locked timeout.
+- If `SUPERVISOR-DONE` has an earlier timestamp than the required
+  `REVIEWER-DONE`, the session is out of order. Codex must mark a protocol
+  violation, read and consume the review, update `decision.md` or write a
+  repair decision, then write `SUPERVISOR-REPAIRED` before preparing or starting
+  the next session.
+- The next session must not be prepared from a reviewed session whose reviewer
+  output has not been consumed in `review_flags.md`.
+
 ## What the Skill Does
 
 LOOP-STATION gives an agent a concrete operating protocol:
@@ -252,6 +264,12 @@ CODEX5.5-SESSION050-SUPERVISOR-DONE
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
 
 Do not move `REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` is the reviewer request signal: Codex has already completed its internal validation, written `supervisor_analysis.md`, and prepared the artifacts the external reviewer should inspect.
+
+Do not write `SUPERVISOR-DONE` before the required reviewer terminal flag has
+been observed and consumed. A `SUPERVISOR-DONE` timestamp earlier than
+`CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag` means Codex skipped final synthesis and
+the session must be marked `SUPERVISOR-VIOLATION`, repaired, and then marked
+`SUPERVISOR-REPAIRED` before the next session starts.
 
 ## Claude Code Reviewer Mode
 

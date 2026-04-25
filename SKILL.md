@@ -361,6 +361,20 @@ Do not overwrite maintained runtime files during the loop. If direct source modi
 
 When collaborating with other agents, every flag must name the producing agent, session, role, and status.
 
+The canonical reviewed-session order is mandatory:
+
+```text
+1. {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
+2. {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+3. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-RUNNING.flag
+4. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
+5. {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-RUNNING.flag
+6. {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
+7. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
+```
+
+Do not reorder these phases. In particular, `SUPERVISOR-READY` is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed and `decision.md` exists.
+
 Use this normalized format:
 
 ```text

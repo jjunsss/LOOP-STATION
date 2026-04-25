@@ -5,6 +5,15 @@
 
 ## Session Flag Checklist
 
+- Canonical order:
+  1. `EXECUTOR-RUNNING`
+  2. `EXECUTOR-DONE`
+  3. `SUPERVISOR-RUNNING`
+  4. `SUPERVISOR-READY`
+  5. `REVIEWER-RUNNING`
+  6. `REVIEWER-DONE`
+  7. `SUPERVISOR-DONE`
+
 - [ ] `EXECUTOR-RUNNING` flag written before execution
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` terminal flag written after execution
 - [ ] executor terminal flag points to readable result artifacts

@@ -18,6 +18,36 @@ Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next sess
 
 Agents should stay in standby, monitor `loop_station/flags/`, and act only when the required `DONE`, `BLOCKED`, or `ABSTAIN` flags and linked artifacts exist.
 
+## Canonical Flag Order
+
+Every reviewed session follows this order:
+
+```text
+1. EXECUTOR-RUNNING
+   Codex starts the session.
+
+2. EXECUTOR-DONE
+   Codex has finished the run and produced executor_report.md, executor_proposal.md,
+   metrics, logs, images, and other result artifacts.
+
+3. SUPERVISOR-RUNNING
+   Codex starts its own review, explanation, and verification phase.
+   It may use sub-agents to inspect code, metrics, images, logs, and variants.
+
+4. SUPERVISOR-READY
+   Codex has written supervisor_analysis.md and prepared exact reviewer requests.
+   Claude/reviewer may start only after this flag.
+
+5. REVIEWER-RUNNING
+   Claude/reviewer starts external review.
+
+6. REVIEWER-DONE
+   Claude/reviewer writes the review artifact and done flag.
+
+7. SUPERVISOR-DONE
+   Codex consumes the reviewer output, writes decision.md, and prepares the next session.
+```
+
 ## Install
 
 ### Codex
@@ -228,6 +258,8 @@ CODEX5.5-SESSION050-SUPERVISOR-DONE
 ```
 
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
+
+Do not move `REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has already completed its own analysis and the external reviewer can safely read the session.
 
 ## Claude Code Reviewer Mode
 

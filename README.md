@@ -212,6 +212,8 @@ Codex uses the review when deciding the next session
 
 The `loop_station/` folder is created by the running loop, but Claude may not know where it is or what the experiment is about. Give Claude enough context to find the run and understand what kind of review you want.
 
+If Claude is invoked before Codex finishes the current session, Claude should stay in reviewer standby. It should poll the relevant `flags/session_{NNN}/` folder and wait until Codex has written executor/supervisor terminal flags and the linked artifacts are readable. It should not modify `FRAME.md`, `contract.json`, code, configs, or session artifacts while waiting.
+
 Example Claude reviewer prompt:
 
 ```text
@@ -231,6 +233,8 @@ Experiment context:
 Reviewer instructions:
 - 먼저 loop/output root와 최근 session artifacts를 찾아.
 - FRAME.md와 contract.json이 있으면 goal, budget, scope를 다시 묻지 말고 그대로 사용해.
+- Codex가 아직 현재 session을 끝내지 않았다면 결과가 나올 때까지 standby로 대기해.
+- `EXECUTOR-DONE`과 필요한 경우 `SUPERVISOR-DONE` flag가 생기고, 연결된 report/proposal/decision/artifacts를 읽을 수 있을 때만 review를 작성해.
 - 최신 executor_report.md, executor_proposal.md, reviewer_requests.md, metrics,
   logs, diffs, generated code, result images, and artifacts를 읽어.
 - 실험을 직접 실행하지 말고 reviewer로만 행동해.

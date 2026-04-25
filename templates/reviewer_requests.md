@@ -15,3 +15,17 @@
 - Heartbeat timeout:
 - Required terminal flags before decision:
 - Optional terminal flags to consume if available:
+
+## Reviewer Standby Instructions
+
+- Active session:
+- Review starts only after:
+  - [ ] executor terminal flag observed
+  - [ ] supervisor terminal flag observed if Codex analysis/decision is required first
+  - [ ] linked executor artifacts are readable
+  - [ ] linked decision artifacts are readable when required
+- Poll paths:
+  - flags:
+  - reviews:
+  - session artifacts:
+- If interrupted, write `REVIEWER-BLOCKED` with the last observed flags and do not write a review.

@@ -12,28 +12,29 @@ LOOP-STATION helps Codex, Claude Code, and other agents improve a target over mu
 
 ### Codex
 
-Install with Codex's skill installer:
+In Codex, ask:
 
-```bash
-python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/install-skill-from-github.py" --repo jjunsss/LOOP-STATION --path . --name loop-station
+```text
+Install the Codex skill from https://github.com/jjunsss/LOOP-STATION as loop-station.
 ```
 
-Restart Codex after installation so the new skill is loaded.
+Codex will use its built-in skill installer and place the skill under your Codex skills directory. Restart Codex after installation so the new skill is loaded.
+
+CLI fallback:
+
+```bash
+python ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --url https://github.com/jjunsss/LOOP-STATION --path . --name loop-station
+```
 
 ### Claude Code
 
-Claude Code can use the same skill files. Add the repository contents to a Claude Code skill folder.
+Claude Code can use the same skill files. Clone or copy this repository into a Claude Code skill folder.
 
-Personal skill:
-
-```text
-~/.claude/skills/
-  loop-station/
-    SKILL.md
-    templates/
+```bash
+git clone https://github.com/jjunsss/LOOP-STATION.git ~/.claude/skills/loop-station
 ```
 
-Project skill:
+For a project-local skill, place it here instead:
 
 ```text
 <project>/

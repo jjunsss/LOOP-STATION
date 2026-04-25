@@ -4,25 +4,23 @@
 
 # LOOP-STATION
 
-**Run iterative agent work without losing the goal, evidence, or handoff.**
+**A reusable agent skill for running bounded improvement loops with evidence, review, and handoff.**
 
-LOOP-STATION is a reusable skill for Codex, Claude Code, and other agent workflows that need bounded improvement loops instead of one-shot execution. It locks the decision frame first, then keeps every session traceable through shared files, named flags, executor reports, reviewer notes, and isolated implementation variants.
+LOOP-STATION helps Codex, Claude Code, and other agents improve a target over multiple sessions without drifting from the original goal. It is not an optimizer by itself. It is the control layer around the work: it locks the frame, limits the loop, records evidence, coordinates review, and keeps implementation variants isolated until they are ready to promote.
 
-Use it when agents need to improve something over multiple sessions while staying anchored to the same goal, budget, evidence, and review policy.
+## What the Skill Does
 
-## What It Solves
+LOOP-STATION gives an agent a concrete operating protocol:
 
-Agent loops often fail in the same ways:
+- **Locks the frame** before work starts: goal, budget, work-unit scope, collaboration mode, and user-intervention boundaries.
+- **Runs bounded sessions** instead of open-ended retries.
+- **Writes durable evidence** after each session: reports, changed values, artifacts, failures, and next proposals.
+- **Coordinates reviewer handoff** so Codex, Claude Code, or another agent can review without asking the user to restate the goal.
+- **Uses named flags** to show which agent is running, done, waiting for review, or finished.
+- **Keeps code variants isolated** so loop-driven changes do not patch maintained source until the user explicitly promotes them.
+- **Forces a decision point** at each session boundary: promote, keep, retire, continue, stop, or ask the user.
 
-- the goal changes between sessions
-- reviewers lack enough context to judge the work
-- evidence gets scattered across chat, logs, and local files
-- retries continue without a budget or stop rule
-- implementation variants overwrite maintained source before they are proven
-
-LOOP-STATION fixes this by turning the loop into a small protocol: lock the frame, run a bounded session, write evidence, request review when useful, make a decision, then continue, stop, or ask the user.
-
-## Use Cases
+Use it when the work needs adaptive loops rather than one-shot execution:
 
 - model or pipeline optimization
 - data cleanup and quality repair
@@ -30,6 +28,116 @@ LOOP-STATION fixes this by turning the loop into a small protocol: lock the fram
 - prompt and agent-behavior iteration
 - visual and metric review loops
 - multi-agent execution with reviewer handoff
+
+## Why It Exists
+
+Agent loops often fail in predictable ways:
+
+- the goal changes between sessions
+- reviewers lack enough context to judge the work
+- evidence gets scattered across chat, logs, and local files
+- retries continue without a budget or stop rule
+- implementation variants overwrite maintained source before they are proven
+
+LOOP-STATION turns those weak points into explicit files, flags, and decision rules.
+
+## How to Command It
+
+Invoke LOOP-STATION with a small required frame:
+
+```text
+Use $loop-station for this goal-directed loop.
+Goal: ...
+Budget: ...
+Work-unit scope: ...
+Collaboration: ...
+User intervention: ...
+```
+
+Frame fields:
+
+```text
+Goal: what should improve or be decided
+Budget: max sessions, wall time, resource pool, cost, or stop limit
+Work-unit scope: one item, a fixed set, or a robustness set
+Collaboration: supervisor only, executor + reviewer, or external review
+User intervention: changes that require explicit approval
+```
+
+If any required field is missing, LOOP-STATION should ask only for the missing parts and keep asking until the frame is complete. Once the frame is locked, later agents reuse the same shared state instead of asking the setup questions again.
+
+## How It Runs
+
+The loop follows this rhythm:
+
+```text
+lock the frame
+run a bounded session
+write evidence and proposal
+request named review when useful
+wait within the review policy
+write a decision
+adapt, stop, or ask the user
+```
+
+Each loop keeps a shared folder inside the loop output root:
+
+```text
+loop_station/
+  FRAME.md
+  contract.json
+  agent_roster.md
+  sessions/
+    session_001/
+      executor_report.md
+      executor_proposal.md
+      decision.md
+      reviewer_requests.md
+      review_flags.md
+  reviews/
+    session_001/
+      CLAUDE-SESSION001-REVIEWER-DONE.md
+  flags/
+    session_001/
+      CODEX5.5-SESSION001-EXECUTOR-RUNNING.flag
+      CODEX5.5-SESSION001-EXECUTOR-DONE.flag
+      CLAUDE-SESSION001-REVIEWER-RUNNING.flag
+      CLAUDE-SESSION001-REVIEWER-DONE.flag
+```
+
+If `contract.json` has `frame_locked: true`, later agents reuse the frame instead of asking for the goal, budget, scope, collaboration mode, or intervention boundaries again.
+
+Flags use this naming pattern:
+
+```text
+{AGENT_NAME}-SESSION{NNN}-{ROLE}-{STATUS}
+```
+
+Examples:
+
+```text
+CODEX5.5-SESSION050-EXECUTOR-RUNNING
+CODEX5.5-SESSION050-EXECUTOR-DONE
+CLAUDE-SESSION050-REVIEWER-RUNNING
+CLAUDE-SESSION050-REVIEWER-DONE
+```
+
+Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
+
+## Safe Code Variants
+
+Loop-driven implementation changes should not patch maintained source in place. Create an isolated implementation variant instead:
+
+```text
+{loop_output_root}/code_variants/session_003/quality_gate_adjustment/
+  manifest.json
+  decision.md
+  src_or_scripts_to_run/
+```
+
+The manifest records copied source files, source hashes, changed files, the reason config-only changes were insufficient, and the command or config that runs the variant.
+
+Direct edits to maintained source should require explicit user approval and a restore path.
 
 ## Install
 
@@ -84,101 +192,6 @@ Codex project-local fallback:
       templates/
 ```
 
-## Quick Start
-
-Invoke LOOP-STATION with the required frame:
-
-```text
-Use $loop-station for this goal-directed loop.
-Goal: ...
-Budget: ...
-Work-unit scope: ...
-Collaboration: ...
-User intervention: ...
-```
-
-The user-facing frame is intentionally small:
-
-```text
-Goal: what should improve or be decided
-Budget: max sessions, wall time, resource pool, cost, or stop limit
-Work-unit scope: one item, a fixed set, or a robustness set
-Collaboration: supervisor only, executor + reviewer, or external review
-User intervention: changes that require explicit approval
-```
-
-If any required frame field is missing, LOOP-STATION should ask for only the missing parts and keep asking until the frame is complete.
-
-Once the frame is locked, agents can run, review, and continue from the same shared state instead of asking the setup questions again.
-
-## Features
-
-- Locks the goal frame before any loop starts.
-- Keeps a persistent `loop_station/` folder for contracts, decisions, reports, reviews, and flags.
-- Lets Codex, Claude Code, or another agent join as a reviewer without re-asking the user for the goal.
-- Requires executor reports with evidence, changed values, artifacts, failures, and next proposals.
-- Supports bounded reviewer waits so a loop can continue when a reviewer does not start or finish in time.
-- Keeps loop-driven code changes in isolated variant folders instead of patching maintained source in place.
-- Records enough evidence to promote, keep, retire, stop, or ask the user at each session boundary.
-
-## How It Works
-
-Each loop keeps a shared folder inside the loop output root:
-
-```text
-loop_station/
-  FRAME.md
-  contract.json
-  agent_roster.md
-  sessions/
-    session_001/
-      executor_report.md
-      executor_proposal.md
-      decision.md
-      reviewer_requests.md
-      review_flags.md
-  reviews/
-    session_001/
-      CLAUDE-SESSION001-REVIEWER-DONE.md
-  flags/
-    session_001/
-      CODEX5.5-SESSION001-EXECUTOR-RUNNING.flag
-      CODEX5.5-SESSION001-EXECUTOR-DONE.flag
-      CLAUDE-SESSION001-REVIEWER-RUNNING.flag
-      CLAUDE-SESSION001-REVIEWER-DONE.flag
-```
-
-The loop moves through this rhythm:
-
-```text
-lock the frame
-run a bounded session
-write evidence and proposal
-request named review when useful
-wait within the review policy
-write a decision
-adapt, stop, or ask the user
-```
-
-If `contract.json` has `frame_locked: true`, later agents reuse the frame instead of asking for the goal, budget, scope, collaboration mode, or intervention boundaries again.
-
-Flags use this naming pattern:
-
-```text
-{AGENT_NAME}-SESSION{NNN}-{ROLE}-{STATUS}
-```
-
-Examples:
-
-```text
-CODEX5.5-SESSION050-EXECUTOR-RUNNING
-CODEX5.5-SESSION050-EXECUTOR-DONE
-CLAUDE-SESSION050-REVIEWER-RUNNING
-CLAUDE-SESSION050-REVIEWER-DONE
-```
-
-Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
-
 ## Claude Code Reviewer Mode
 
 For reviewer-only use, give Claude Code this prompt:
@@ -210,21 +223,6 @@ Write:
 <loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
 <loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
 ```
-
-## Safe Code Variants
-
-Loop-driven implementation changes should not patch maintained source in place. Create an isolated implementation variant instead:
-
-```text
-{loop_output_root}/code_variants/session_003/quality_gate_adjustment/
-  manifest.json
-  decision.md
-  src_or_scripts_to_run/
-```
-
-The manifest records copied source files, source hashes, changed files, the reason config-only changes were insufficient, and the command or config that runs the variant.
-
-Direct edits to maintained source should require explicit user approval and a restore path.
 
 ## Example
 

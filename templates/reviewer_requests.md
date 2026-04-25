@@ -26,9 +26,9 @@
   - ready signal:
 - Review starts only after:
   - [ ] executor terminal flag observed
-  - [ ] supervisor terminal flag observed if Codex analysis/decision is required first
+  - [ ] `SUPERVISOR-READY` observed
   - [ ] linked executor artifacts are readable
-  - [ ] linked decision artifacts are readable when required
+  - [ ] linked decision artifacts are readable only for explicit post-decision audit
 - Poll paths:
   - flags:
   - reviews:

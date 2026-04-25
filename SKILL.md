@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, and move to the next session only after required terminal flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before executor/supervisor terminal flags exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
+description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, and move to the next session only after required flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
 ---
 
 # Loop Station
@@ -212,7 +212,7 @@ The reviewer must not infer the frame and start editing loop files. If `FRAME.md
 
 If the user asks for continuous waiting, real-time waiting, ongoing review, or "keep watching", the reviewer should immediately use the environment's persistent monitor, background watcher, automation, or equivalent long-running polling tool when available. Do this as part of entering standby, not only after the user repeats the request.
 
-The watcher should poll for ready signals, not modify experiment files. It should emit or act only when a session becomes review-ready: executor terminal flag present, supervisor terminal flag present when required, and linked artifacts readable.
+The watcher should poll for ready signals, not modify experiment files. It should emit or act only when a session becomes review-ready: `EXECUTOR-DONE` present, `SUPERVISOR-READY` present, and linked executor artifacts readable. Wait for `SUPERVISOR-DONE` only for explicit post-decision audit requests.
 
 Standby sequence:
 
@@ -220,10 +220,10 @@ Standby sequence:
 2. Read `FRAME.md`, `contract.json`, `agent_roster.md`, `reviewer_requests.md`, and existing flags if they exist.
 3. If continuous waiting is requested and a persistent monitor/background watcher is available, start it before writing any review.
 4. Write a reviewer `RUNNING` flag only after the reviewer has resolved the target session and output paths.
-5. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag for the target session exists.
-6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, and then wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` when the request asks for review after Codex analysis is complete.
-7. A plain `EXECUTOR-RUNNING`, `SUPERVISOR-READY`, or partial report file is not enough to start review unless the user explicitly asks for live partial review.
-8. When the needed terminal flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, metrics/logs, result images, and `decision.md` are readable before writing the review.
+5. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag and `SUPERVISOR-READY` for the target session exist.
+6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, then wait for `SUPERVISOR-READY` when the request asks for Claude/reviewer input before Codex writes the final decision. Wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` only when the user explicitly asks for a post-decision audit.
+7. A plain `EXECUTOR-RUNNING`, partial report file, or `SUPERVISOR-READY` without `EXECUTOR-DONE` is not enough to start review unless the user explicitly asks for live partial review.
+8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, metrics/logs, and result images are readable before writing the review. Require `decision.md` only for explicit post-decision audit.
 9. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
 
 For continuous waiting, repeat the flag check in this order each poll:
@@ -231,9 +231,9 @@ For continuous waiting, repeat the flag check in this order each poll:
 ```text
 1. resolve active session number
 2. check executor terminal flag
-3. check supervisor terminal flag when required
+3. check `SUPERVISOR-READY` for normal review, or supervisor terminal flag only for post-decision audit
 4. verify linked artifacts are readable
-5. emit one ready signal or write review only after the required terminal flags and artifacts exist
+5. emit one ready signal or write review only after the required flags and artifacts exist
 ```
 
 If the environment cannot keep a long-running wait alive, write a `REVIEWER-BLOCKED` flag explaining that the wait was interrupted and list the exact flag paths the user or executor should ping on. Do not convert an interrupted wait into a review.
@@ -347,10 +347,13 @@ Use this normalized format:
 Examples:
 
 ```text
-CODEX5.5-SESSION050-SUPERVISOR-DONE
+CODEX5.5-SESSION050-EXECUTOR-RUNNING
 CODEX5.5-SESSION050-EXECUTOR-DONE
+CODEX5.5-SESSION050-SUPERVISOR-READY
 CLAUDE-SESSION050-REVIEWER-RUNNING
 CLAUDE-SESSION050-REVIEWER-HEARTBEAT
+CLAUDE-SESSION050-REVIEWER-DONE
+CODEX5.5-SESSION050-SUPERVISOR-DONE
 REVIEWER_B-SESSION050-REVIEWER-BLOCKED
 TESTER_A-SESSION050-TESTER-DONE
 CODEX5.5-SESSION050-SUPERVISOR-TIMEOUT
@@ -400,6 +403,17 @@ For each executor-run session, Codex or any other executor must leave this minim
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
+```
+
+For a reviewed session, the normal order is:
+
+```text
+{EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
+{EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
+{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
+{REVIEWER_NAME}-SESSION{NNN}-REVIEWER-RUNNING.flag
+{REVIEWER_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
 {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
 ```
 

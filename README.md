@@ -22,6 +22,8 @@ Restart Codex after installation.
 
 ### Claude Code
 
+Ask Claude code:
+
 ```text
 Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
 ```

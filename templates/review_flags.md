@@ -5,14 +5,19 @@
 
 ## Session Flag Checklist
 
-- Canonical order:
+- Canonical lifecycle:
   1. `EXECUTOR-RUNNING`
   2. `EXECUTOR-DONE`
-  3. `SUPERVISOR-RUNNING`
-  4. `SUPERVISOR-READY`
+  3. internal validation / sub-agent checks when available
+  4. `SUPERVISOR-READY` reviewer request
   5. `REVIEWER-RUNNING`
   6. `REVIEWER-DONE`
-  7. `SUPERVISOR-DONE`
+  7. Codex checks flags and consumes review
+  8. `SUPERVISOR-DONE`
+  9. prepare next session
+  10. next session `EXECUTOR-RUNNING`
+
+  `SUPERVISOR-RUNNING` is the flag form of step 3.
 
 - [ ] `EXECUTOR-RUNNING` flag written before execution
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` terminal flag written after execution
@@ -33,6 +38,7 @@
 - [ ] terminal reviewer flag observed, or timeout policy applied
 - [ ] `DONE` review artifact exists and is readable before counting it
 - [ ] consumed reviewer artifacts recorded before `decision.md`
+- [ ] next session not prepared before `SUPERVISOR-DONE`
 
 ## Reviewer Standby Checklist
 

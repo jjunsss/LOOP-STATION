@@ -18,7 +18,7 @@ Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next sess
 
 Agents should stay in standby, monitor `loop_station/flags/`, and act only when the required `DONE`, `BLOCKED`, or `ABSTAIN` flags and linked artifacts exist.
 
-## Canonical Flag Order
+## Canonical Session Lifecycle
 
 Every reviewed session follows this order:
 
@@ -30,13 +30,13 @@ Every reviewed session follows this order:
    Codex has finished the run and produced executor_report.md, executor_proposal.md,
    metrics, logs, images, and other result artifacts.
 
-3. SUPERVISOR-RUNNING
-   Codex starts its own review, explanation, and verification phase.
-   It may use sub-agents to inspect code, metrics, images, logs, and variants.
+3. Internal validation
+   Codex reviews its own results, writes supervisor_analysis.md, and uses
+   sub-agents when available to inspect code, metrics, images, logs, and variants.
 
-4. SUPERVISOR-READY
-   Codex has written supervisor_analysis.md and prepared exact reviewer requests.
-   Claude/reviewer may start only after this flag.
+4. REVIEWER request
+   Codex writes reviewer_requests.md and SUPERVISOR-READY.
+   Claude/reviewer may start only after EXECUTOR-DONE + SUPERVISOR-READY.
 
 5. REVIEWER-RUNNING
    Claude/reviewer starts external review.
@@ -44,9 +44,21 @@ Every reviewed session follows this order:
 6. REVIEWER-DONE
    Claude/reviewer writes the review artifact and done flag.
 
-7. SUPERVISOR-DONE
-   Codex consumes the reviewer output, writes decision.md, and prepares the next session.
+7. Codex consumes review
+   Codex checks flags, reads the reviewer artifact, and records what was consumed.
+
+8. SUPERVISOR-DONE
+   Codex writes decision.md with the integrated judgment.
+
+9. Prepare next session
+   Codex creates the next session slate only after SUPERVISOR-DONE.
+
+10. Next session starts
+   The next session begins with the next EXECUTOR-RUNNING flag.
 ```
+
+In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
+Codex internal validation and optional sub-agent checks.
 
 ## Install
 
@@ -176,13 +188,16 @@ The loop follows this rhythm:
 
 ```text
 lock the frame
-run a bounded session
-write executor evidence and proposal
-write Codex supervisor analysis
-request named review when useful
-wait within the review policy
-consume review and write a decision
-adapt, stop, or ask the user
+EXECUTOR-RUNNING
+EXECUTOR-DONE
+internal validation / sub-agent checks when available
+SUPERVISOR-READY reviewer request
+REVIEWER-RUNNING
+REVIEWER-DONE
+Codex checks flags and consumes review
+SUPERVISOR-DONE
+prepare next session
+next session EXECUTOR-RUNNING
 ```
 
 Each loop keeps a shared folder inside the loop output root:
@@ -236,7 +251,7 @@ CODEX5.5-SESSION050-SUPERVISOR-DONE
 
 Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
 
-Do not move `REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has already completed its own analysis and the external reviewer can safely read the session.
+Do not move `REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` is the reviewer request signal: Codex has already completed its internal validation, written `supervisor_analysis.md`, and prepared the artifacts the external reviewer should inspect.
 
 ## Claude Code Reviewer Mode
 
@@ -260,30 +275,32 @@ Example Claude reviewer prompt:
 
 ```text
 /loop-station
-나는 현재 Codex로 전신 실험을 돌리는 LOOP-STATION 실험을 하고 있어.
-Codex가 어느 정도 session을 실행해서 중간 결과, metrics, 이미지, 코드 변경,
-executor_report, executor_proposal을 남겨둔 상태야.
+I am running a full-body quality experiment with Codex through LOOP-STATION.
+Codex is the executor and supervisor. Claude is the external reviewer.
 
 Loop/output root:
 <loop_output_root>/loop_station/
 
 Experiment context:
-전신 품질 개선 실험이고, 중간 결과들의 경향성을 파악해서 의미 있는 개선 방향을
-제안해주면 좋겠어. 결과가 충분히 쌓인 뒤에 review를 적어주면 되고,
-잡다한 말보다 scientific하고 의미 있는 부분에 집중해줘.
+Codex is improving subject 200014. Focus on scientific trends across sessions:
+PSNR, LPIPS, SSIM, visual quality, failure modes, floaters, and regressions.
+Do not rewrite the experiment. Wait for Codex results, then review them.
 
 Reviewer instructions:
-- 먼저 loop/output root와 최근 session artifacts를 찾아.
-- FRAME.md와 contract.json이 있으면 goal, budget, scope를 다시 묻지 말고 그대로 사용해.
-- Codex가 아직 현재 session을 끝내지 않았다면 결과가 나올 때까지 standby로 대기해.
-- 계속 대기하라는 요청이면 사용 가능한 Monitor/background watcher를 즉시 띄워서 session ready flag를 폴링해.
-- `EXECUTOR-DONE`과 `SUPERVISOR-READY` flag가 생기고, 연결된 report/proposal/supervisor_analysis/metrics/images를 읽을 수 있을 때만 review를 작성해.
-- review가 끝나면 Codex가 그 review를 소비해서 decision.md와 `SUPERVISOR-DONE`을 작성하는 순서야.
-- 최신 executor_report.md, executor_proposal.md, supervisor_analysis.md, reviewer_requests.md, metrics,
-  logs, diffs, generated code, result images, and artifacts를 읽어.
-- 실험을 직접 실행하지 말고 reviewer로만 행동해.
-- 코드 수정이나 다음 session 실행은 하지 마.
-- 단순 요약보다 경향성, 실패 원인, 개선 가능성이 큰 방향, 다음 실험 제안을 중심으로 써.
+- Find the active loop/output root and latest session artifacts.
+- If FRAME.md and contract.json exist, reuse them instead of asking setup questions.
+- If Codex has not finished the current session, stay in standby.
+- For continuous standby, start the available Monitor/background watcher immediately.
+- Review only after `EXECUTOR-DONE` and `SUPERVISOR-READY` exist and linked
+  artifacts are readable.
+- Read executor_report.md, executor_proposal.md, supervisor_analysis.md,
+  reviewer_requests.md, metrics, logs, diffs, generated code, result images,
+  and artifacts.
+- Do not execute experiments, modify code, edit frame files, or prepare the next session.
+- Write a concise scientific review: trends, likely causes, risks, and next
+  experiment suggestions.
+- After the review, Codex will consume it, write decision.md, mark
+  `SUPERVISOR-DONE`, then prepare the next session.
 
 Write the review to:
 <loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md

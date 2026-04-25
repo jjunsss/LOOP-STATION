@@ -98,10 +98,10 @@ Use this mode when the agent is allowed to run sessions or prepare the next sess
 The executor must:
 
 1. Read `loop_station/contract.json`, prior `decision.md`, prior reviewer notes, metrics, logs, and review artifacts.
-2. Run or supervise the session within the locked frame.
-3. Write `executor_report.md` with results, changed values, changed implementation variants, commands, metrics, artifacts, and failures.
-4. Write `executor_proposal.md` with sharp analysis and the next proposed intervention.
-5. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
+2. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
+3. Run or supervise the session within the locked frame.
+4. Write `executor_report.md` with results, changed values, changed implementation variants, commands, metrics, artifacts, and failures.
+5. Write `executor_proposal.md` with sharp analysis and the next proposed intervention.
 6. After execution finishes, write an executor terminal flag only after the result artifacts exist. Use `EXECUTOR-DONE` when `executor_report.md`, `executor_proposal.md`, metrics/log references, and produced artifacts are complete; otherwise use `EXECUTOR-BLOCKED` or `EXECUTOR-ABSTAIN` with the reason.
 7. Hand off to the supervisor self-review phase before external reviewers are allowed to act.
 8. After requesting any reviewer, tester, or cooperating agent, enter the Sequential Collaboration Gate before writing `decision.md`, the next session slate, a final review summary, or any claim that review is complete.
@@ -306,7 +306,7 @@ Before external reviewer handoff, the supervisor must:
 1. Read metrics, logs, result artifacts, run configs, executor reports, executor proposals, and prior reviewer notes.
 2. Compare against baseline, current best, previous session, and user goal.
 3. Classify directions as `promote`, `keep`, `retire`, `needs_more_evidence`, `needs_code_variant`, `stop`, or `ask_user`.
-4. Decide the next action:
+4. Draft a provisional next direction for reviewer inspection:
    - change important parameters
    - continue a promising axis
    - reduce or reverse a harmful axis
@@ -361,19 +361,48 @@ Do not overwrite maintained runtime files during the loop. If direct source modi
 
 When collaborating with other agents, every flag must name the producing agent, session, role, and status.
 
-The canonical reviewed-session order is mandatory:
+The canonical reviewed-session lifecycle is mandatory:
 
 ```text
-1. {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
-2. {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-DONE.flag
-3. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-RUNNING.flag
-4. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag
-5. {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-RUNNING.flag
-6. {REVIEWER_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
-7. {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
+1. EXECUTOR-RUNNING
+   The executor starts the session.
+
+2. EXECUTOR-DONE
+   The executor has produced result artifacts, metrics/log references,
+   executor_report.md, and executor_proposal.md.
+
+3. Internal validation / sub-agent checks
+   Codex or the supervisor reviews the result, uses sub-agents when available,
+   verifies code/metrics/images/logs/variants, and writes supervisor_analysis.md.
+
+4. REVIEWER request
+   The supervisor writes reviewer_requests.md and SUPERVISOR-READY.
+   This is the handoff point to Claude or another external reviewer.
+
+5. REVIEWER-RUNNING
+   The reviewer starts external review.
+
+6. REVIEWER-DONE
+   The reviewer writes the review artifact and done flag.
+
+7. Codex consumes review
+   Codex checks the reviewer flags, reads the review artifact, and records
+   consumed reviewer artifacts in review_flags.md.
+
+8. SUPERVISOR-DONE
+   Codex writes decision.md with the integrated judgment and terminal flag.
+
+9. Prepare next session
+   Codex prepares the next session slate only after SUPERVISOR-DONE.
+
+10. Next session starts
+   The next session begins with the next EXECUTOR-RUNNING flag.
 ```
 
-Do not reorder these phases. In particular, `SUPERVISOR-READY` is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed and `decision.md` exists.
+In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
+Codex internal validation and optional sub-agent checks.
+
+Do not reorder these phases. In particular, `SUPERVISOR-READY` is the reviewer request signal and is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed and `decision.md` exists. The next session must not start before `SUPERVISOR-DONE`.
 
 Use this normalized format:
 
@@ -436,7 +465,7 @@ Each flag must include:
 
 No agent may overwrite another agent's flag. The supervisor may consume flags, but should preserve them as provenance.
 
-For each executor-run session, Codex or any other executor must leave this minimum flag trail:
+For an unreviewed supervisor-only session, Codex or any other executor must leave this minimum flag trail:
 
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
@@ -445,7 +474,7 @@ For each executor-run session, Codex or any other executor must leave this minim
 {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
 ```
 
-For a reviewed session, the normal order is:
+For a reviewed session, the normal flag trail is:
 
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag

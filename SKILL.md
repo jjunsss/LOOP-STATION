@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for bounded goal-directed loops that must first lock a goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries, then run adaptive sessions that inspect results, adjust strategy, isolate implementation variants, and stop or escalate without turning into open-ended retry. If invoked as a reviewer before executor/supervisor terminal flags exist, enter standby and use any available monitor/background watcher tool to poll loop_station flags instead of editing files or writing a premature review.
+description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, and move to the next session only after required terminal flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before executor/supervisor terminal flags exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
 ---
 
 # Loop Station

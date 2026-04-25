@@ -4,9 +4,19 @@
 
 # LOOP-STATION
 
-**A reusable agent skill for running bounded improvement loops with evidence, review, and handoff.**
+**A live multi-agent loop where executors and reviewers keep watching, exchange feedback, and move only on verified flags.**
 
-LOOP-STATION helps Codex, Claude Code, and other agents improve a target over multiple sessions without drifting from the original goal. It is not an optimizer by itself. It is the control layer around the work: it locks the frame, limits the loop, records evidence, coordinates review, and keeps implementation variants isolated until they are ready to promote.
+LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment: Codex runs bounded sessions, reviewers wait for terminal flags, feedback is written to shared artifacts, and the next session starts only after the loop has evidence.
+
+## Core Idea
+
+LOOP-STATION is for live feedback loops, not one-off prompts.
+
+```text
+Codex runs -> writes flags and artifacts -> Claude reviews -> Codex consumes review -> next session
+```
+
+Agents should stay in standby, monitor `loop_station/flags/`, and act only when the required `DONE`, `BLOCKED`, or `ABSTAIN` flags and linked artifacts exist.
 
 ## Install
 
@@ -87,13 +97,25 @@ Use it when the work needs adaptive loops rather than one-shot execution:
 
 Invoke LOOP-STATION with a required frame. The frame can be short, but it can also include project context, prior loop references, metrics, compute budget, collaboration rules, and experiment preferences.
 
+### Minimal Live Loop
+
 ```text
 $loop-station
-Goal: ...
-Budget: ...
-Work-unit scope: ...
-Collaboration: ...
-User intervention: ...
+Goal: improve subject 200014 full-body quality.
+Budget: 40 sessions, use up to 4 GPUs.
+Work-unit scope: compare metrics and rendered images each session.
+Collaboration: Codex runs experiments; Claude waits and reviews after each Codex session is done.
+User intervention: ask before direct maintained-source edits.
+```
+
+Start the reviewer after Codex has begun producing loop artifacts:
+
+```text
+/loop-station
+Watch the running Codex LOOP-STATION experiment.
+Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-DONE flags.
+When a session is ready, read the report, proposal, decision, metrics, logs, and images.
+Write a concise scientific review, then keep watching for the next session.
 ```
 
 Frame fields:

@@ -37,6 +37,8 @@
     "start_timeout_seconds": 300,
     "done_timeout_seconds": 1800,
     "heartbeat_timeout_seconds": 600,
+    "sequential_flag_gate": true,
+    "require_artifact_for_done": true,
     "allow_skip_on_timeout": true
   },
   "current_session": 1

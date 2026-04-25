@@ -103,9 +103,10 @@ The executor must:
 5. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
 6. Write an executor done flag after artifacts are complete, such as `CODEX5.5-SESSION050-EXECUTOR-DONE`.
 7. Add reviewer requests at any time when a new review lens would improve the next decision.
-8. Wait for required reviewer flags according to `review_wait_policy`, not indefinitely.
-9. If reviewer timeout rules allow skipping, record the timeout and proceed.
-10. Read available reviewer notes before creating the next session slate.
+8. After requesting any reviewer, tester, or cooperating agent, enter the Sequential Collaboration Gate before writing `decision.md`, the next session slate, a final review summary, or any claim that review is complete.
+9. Wait for required reviewer flags according to `review_wait_policy`, not indefinitely.
+10. If reviewer timeout rules allow skipping, record the timeout and proceed.
+11. Read available reviewer notes before creating the next session slate.
 
 The executor's own report must include analysis, not only a metric dump. It should identify surprising results, harmful directions, promising directions, and why the next intervention is justified.
 
@@ -138,6 +139,25 @@ The executor must also write a request flag:
 ```
 
 The request flag should point to `reviewer_requests.md`.
+
+### Sequential Collaboration Gate
+
+When the executor asks another agent to review, test, or collaborate, it must not immediately continue as if the review has happened. It must consume the collaboration flags in order.
+
+The gate is mandatory for every requested reviewer or tester marked `required`, and recommended for optional reviewers when their result is expected to influence the next decision.
+
+Required sequence:
+
+1. Write or update `agent_roster.md` and `sessions/session_{NNN}/reviewer_requests.md`.
+2. Write `{EXECUTOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag` pointing to the request file, expected artifacts, and expected reviewer output path.
+3. Check the exact `flags/session_{NNN}/` directory and expected `reviews/session_{NNN}/` path before proceeding.
+4. Wait for a requested reviewer to write one of `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` within `start_timeout_seconds`.
+5. If the reviewer writes `RUNNING`, keep waiting for a terminal flag: `DONE`, `BLOCKED`, or `ABSTAIN`. A `HEARTBEAT` only proves the reviewer is still active; it is not terminal.
+6. If the reviewer writes `DONE`, verify that the expected review artifact exists and is readable. A `DONE` flag without the review artifact is incomplete and must be recorded in `review_flags.md`.
+7. Read terminal review artifacts in flag timestamp order and record what was consumed in `review_flags.md`.
+8. Only after the required done count is met, or after the locked timeout policy explicitly allows skipping, write `decision.md`, generate the next session slate, or summarize the review outcome.
+
+If the executor cannot find the expected `loop_station/` folder, flag directory, or review artifact path, it must search the project for the active `loop_station/` folder and record the resolved path before continuing. If the path is still ambiguous, stop with `ask_user` instead of fabricating a review result.
 
 ### Reviewer / Project Review Mode
 
@@ -196,6 +216,8 @@ Reviewer waits must be bounded.
     "start_timeout_seconds": 300,
     "done_timeout_seconds": 1800,
     "heartbeat_timeout_seconds": 600,
+    "sequential_flag_gate": true,
+    "require_artifact_for_done": true,
     "allow_skip_on_timeout": true
   }
 }
@@ -209,9 +231,11 @@ Use these rules:
 2. If no reviewer writes any flag or review artifact before `start_timeout_seconds`, record `REVIEW_START_TIMEOUT` in `review_flags.md`.
 3. After a reviewer writes `RUNNING`, wait up to `done_timeout_seconds` for `DONE`, `BLOCKED`, or `ABSTAIN`.
 4. If a `RUNNING` reviewer writes no review artifact and no fresh `HEARTBEAT` flag within `heartbeat_timeout_seconds`, record `REVIEW_HEARTBEAT_TIMEOUT`.
-5. If the required done count is met, proceed.
-6. If timeout occurs and `allow_skip_on_timeout` is true, proceed with available evidence and write why the reviewer wait was skipped.
-7. If timeout occurs and `allow_skip_on_timeout` is false, stop with `ask_user` or `ABSTAIN`.
+5. If a reviewer writes `DONE`, verify that the expected review artifact exists before counting it toward `required_done_count`.
+6. If `DONE` exists without a readable review artifact, record `REVIEW_DONE_WITHOUT_ARTIFACT` and continue waiting or apply the timeout policy.
+7. If the required done count is met, proceed.
+8. If timeout occurs and `allow_skip_on_timeout` is true, proceed with available evidence and write why the reviewer wait was skipped.
+9. If timeout occurs and `allow_skip_on_timeout` is false, stop with `ask_user` or `ABSTAIN`.
 
 Timeouts are reviewer coordination failures, not proof that the session result is invalid. The executor should continue when the locked budget and wait policy allow it, but must preserve the timeout record.
 
@@ -232,8 +256,9 @@ At session end, the supervisor must:
    - expand or reduce work-unit scope
    - wait for review
    - stop or abstain
-5. Write a session decision note with rationale.
-6. Generate the next session slate only after the decision note exists.
+5. If any required reviewer/tester/cooperating-agent request exists for the session, complete the Sequential Collaboration Gate before writing the session decision.
+6. Write a session decision note with rationale.
+7. Generate the next session slate only after the decision note exists.
 
 ## Implementation Variant Rule
 

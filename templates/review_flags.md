@@ -14,8 +14,9 @@
   6. `REVIEWER-DONE`
   7. Codex checks flags and consumes review
   8. `SUPERVISOR-DONE`
-  9. prepare next session
-  10. next session `EXECUTOR-RUNNING`
+  9. compact checkpoint when useful
+  10. prepare next session
+  11. next session `EXECUTOR-RUNNING`
 
   `SUPERVISOR-RUNNING` is the flag form of step 3.
 
@@ -25,7 +26,7 @@
 - [ ] `SUPERVISOR-RUNNING` flag written before Codex self-review/verification
 - [ ] `supervisor_analysis.md` written after Codex self-review/verification
 - [ ] `SUPERVISOR-READY` flag written after supervisor analysis and before external review
-- [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` terminal flag written after `decision.md`
+- [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` terminal flag written after `decision.md` and summary updates
 - [ ] supervisor terminal flag points to `decision.md` and the next action
 
 ## Sequential Gate Checklist
@@ -39,8 +40,18 @@
 - [ ] `DONE` review artifact exists and is readable before counting it
 - [ ] required `REVIEWER-DONE` timestamp is earlier than `SUPERVISOR-DONE`
 - [ ] consumed reviewer artifacts recorded before `decision.md`
+- [ ] `summaries/ROLLING_SUMMARY.md` updated before supervisor terminal flag
+- [ ] `summaries/SESSION_LEDGER.md` updated before supervisor terminal flag
+- [ ] `summaries/COMPACT_HANDOFF.md` updated before supervisor terminal flag
 - [ ] next session not prepared before `SUPERVISOR-DONE`
 - [ ] no next session slate or next `EXECUTOR-RUNNING` exists before reviewer consumption
+
+## Compact Checklist
+
+- [ ] compact happens only after terminal flags and summary updates
+- [ ] `COMPACT_HANDOFF.md` lists current best, risks, budget, and exact next action
+- [ ] reviewer compact notes updated when reviewer can write files
+- [ ] resume read order recorded
 
 ## Protocol Violations
 

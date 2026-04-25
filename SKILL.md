@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, and move to the next session only after required flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
+description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, maintain compact-ready rolling summaries, and move to the next session only after required flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
 ---
 
 # Loop Station
@@ -56,6 +56,13 @@ loop_station/
   FRAME.md
   contract.json
   agent_roster.md
+  summaries/
+    ROLLING_SUMMARY.md
+    SESSION_LEDGER.md
+    COMPACT_HANDOFF.md
+    REVIEWER_ROLLUP.md
+    compact/
+      session_{NNN}-{AGENT_NAME}.md
   sessions/
     session_{NNN}/
       executor_report.md
@@ -84,8 +91,61 @@ loop_station/
 - `review_flag_format`
 - `review_wait_policy`
 - `current_session`
+- `summary_policy`
+- `compaction_policy`
 
 If `contract.json` exists and `frame_locked` is true, any later agent must reuse it. Reviewer agents must not ask the user to restate the goal, budget, work-unit scope, collaboration mode, or intervention boundaries unless the contract is internally contradictory or explicitly marked stale.
+
+## Rolling Summary And Compact Rule
+
+Session-wise artifacts are the source of truth. The shared `summaries/` folder is the compact-ready index that lets Codex, Claude Code, and later agents resume quickly after context compaction.
+
+Maintain these files throughout the loop:
+
+```text
+loop_station/summaries/ROLLING_SUMMARY.md
+loop_station/summaries/SESSION_LEDGER.md
+loop_station/summaries/COMPACT_HANDOFF.md
+loop_station/summaries/REVIEWER_ROLLUP.md
+loop_station/summaries/compact/session_{NNN}-{AGENT_NAME}.md
+```
+
+Before any agent intentionally compacts context, ends a long standby period, or asks the environment to compact, it must update the relevant summary files first.
+
+Codex or the active supervisor must update `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and `COMPACT_HANDOFF.md` after every completed session decision and before writing `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, `SUPERVISOR-ABSTAIN`, or `SUPERVISOR-REPAIRED`.
+
+Reviewer agents, including Claude Code, must update `REVIEWER_ROLLUP.md` and a per-compact note under `summaries/compact/` after writing `REVIEWER-DONE`, `REVIEWER-BLOCKED`, or `REVIEWER-ABSTAIN` when they have enough context to summarize. They must not edit executor-owned session artifacts while doing this.
+
+After a clean session boundary, an agent should compact or recommend compaction when one of these is true:
+
+- the current conversation has accumulated enough context that future reasoning may degrade
+- at least `compact_every_sessions` sessions have completed since the last compact handoff
+- a long reviewer standby or multi-session review has completed
+- the next session can be planned entirely from `FRAME.md`, `contract.json`, `summaries/`, and the latest session artifacts
+
+Do not compact in the middle of execution, review, or supervisor synthesis. Compact only after durable artifacts and summaries are written.
+
+`COMPACT_HANDOFF.md` must be short and operational. It should state:
+
+- current goal, scope, budget remaining, and resource assumptions
+- current best candidate and why
+- rejected or retired directions
+- unresolved risks, confounds, and missing validation
+- latest reviewer conclusions
+- exact next session recommendation
+- paths that the next agent should read first
+
+When resuming after compaction, read in this order:
+
+1. `loop_station/contract.json`
+2. `loop_station/FRAME.md`
+3. `loop_station/summaries/COMPACT_HANDOFF.md`
+4. `loop_station/summaries/ROLLING_SUMMARY.md`
+5. `loop_station/summaries/SESSION_LEDGER.md`
+6. latest `sessions/session_{NNN}/decision.md`
+7. latest relevant reviewer artifact
+
+If summaries disagree with session artifacts, trust the session artifacts and repair the summaries before continuing.
 
 ## Agent Modes
 
@@ -97,7 +157,7 @@ Use this mode when the agent is allowed to run sessions or prepare the next sess
 
 The executor must:
 
-1. Read `loop_station/contract.json`, prior `decision.md`, prior reviewer notes, metrics, logs, and review artifacts.
+1. Read `loop_station/contract.json`, `loop_station/summaries/COMPACT_HANDOFF.md`, prior `decision.md`, prior reviewer notes, metrics, logs, and review artifacts.
 2. Write an executor start flag before work, such as `CODEX5.5-SESSION050-EXECUTOR-RUNNING`.
 3. Run or supervise the session within the locked frame.
 4. Write `executor_report.md` with results, changed values, changed implementation variants, commands, metrics, artifacts, and failures.
@@ -167,7 +227,7 @@ Strict ordering invariant:
 - Do not write `SUPERVISOR-DONE`, prepare the next session slate, or start the
   next `EXECUTOR-RUNNING` until every required reviewer has a terminal flag
   (`REVIEWER-DONE`, `REVIEWER-BLOCKED`, `REVIEWER-ABSTAIN`) or the locked timeout
-  policy has been recorded.
+  policy has been recorded, and the rolling summaries have been updated.
 - For a `REVIEWER-DONE` terminal flag, the matching review artifact must exist,
   be readable, be read by Codex, and be recorded in `review_flags.md` before
   `decision.md` and `SUPERVISOR-DONE`.
@@ -175,8 +235,8 @@ Strict ordering invariant:
   `REVIEWER-DONE` timestamp for the same session, treat the session as
   out-of-order. Do not overwrite the early flag. Write `SUPERVISOR-VIOLATION`,
   consume the review, update `decision.md` or write a repair decision, record the
-  repair in `review_flags.md`, then write `SUPERVISOR-REPAIRED` before any next
-  session preparation.
+  repair in `review_flags.md`, update summaries, then write `SUPERVISOR-REPAIRED`
+  before any next session preparation.
 
 Required sequence:
 
@@ -228,6 +288,8 @@ The reviewer must also write a flag:
 ```text
 {loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
 ```
+
+After writing a terminal reviewer artifact, update `loop_station/summaries/REVIEWER_ROLLUP.md` and a compact note under `loop_station/summaries/compact/` when the environment allows file edits. Keep this update concise and do not modify executor-owned artifacts.
 
 Before doing review work, the reviewer should write a start flag:
 
@@ -338,8 +400,9 @@ After external reviewer feedback is available or skipped by policy, the supervis
 1. Complete the Sequential Collaboration Gate for any required reviewer/tester/cooperating-agent request.
 2. Read consumed review artifacts and record them in `review_flags.md`.
 3. Write `decision.md` with the integrated judgment and next action.
-4. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists and points to the executor report, proposal, supervisor analysis, consumed review artifacts, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
-5. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
+4. Update `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and `summaries/COMPACT_HANDOFF.md`.
+5. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists, summaries are updated, and the flag points to the executor report, proposal, supervisor analysis, consumed review artifacts, summaries, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
+6. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
 
 ## Implementation Variant Rule
 
@@ -406,19 +469,23 @@ The canonical reviewed-session lifecycle is mandatory:
    consumed reviewer artifacts in review_flags.md.
 
 8. SUPERVISOR-DONE
-   Codex writes decision.md with the integrated judgment and terminal flag.
+   Codex writes decision.md, updates summaries, then writes the terminal flag.
 
-9. Prepare next session
+9. Compact checkpoint
+   Codex, Claude, or another agent may compact only after durable artifacts and
+   summaries exist.
+
+10. Prepare next session
    Codex prepares the next session slate only after SUPERVISOR-DONE.
 
-10. Next session starts
+11. Next session starts
    The next session begins with the next EXECUTOR-RUNNING flag.
 ```
 
 In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
 Codex internal validation and optional sub-agent checks.
 
-Do not reorder these phases. In particular, `SUPERVISOR-READY` is the reviewer request signal and is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed and `decision.md` exists. The next session must not start before `SUPERVISOR-DONE`.
+Do not reorder these phases. In particular, `SUPERVISOR-READY` is the reviewer request signal and is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed, `decision.md` exists, and rolling summaries are updated. The next session must not start before `SUPERVISOR-DONE`.
 
 If `SUPERVISOR-DONE` appears before the required reviewer terminal flag for the
 same session, the session is invalid until repaired. Codex must not use that
@@ -532,6 +599,11 @@ Maintain these artifacts when feasible:
 loop_station/FRAME.md
 loop_station/contract.json
 loop_station/agent_roster.md
+loop_station/summaries/ROLLING_SUMMARY.md
+loop_station/summaries/SESSION_LEDGER.md
+loop_station/summaries/COMPACT_HANDOFF.md
+loop_station/summaries/REVIEWER_ROLLUP.md
+loop_station/summaries/compact/
 loop_station/sessions/session_{NNN}/executor_report.md
 loop_station/sessions/session_{NNN}/executor_proposal.md
 loop_station/sessions/session_{NNN}/supervisor_analysis.md

@@ -68,12 +68,15 @@ Every reviewed session follows this order:
    Codex checks flags, reads the reviewer artifact, and records what was consumed.
 
 8. SUPERVISOR-DONE
-   Codex writes decision.md with the integrated judgment.
+   Codex writes decision.md with the integrated judgment and updates summaries.
 
-9. Prepare next session
+9. Compact checkpoint
+   Codex or Claude may compact only after durable artifacts and summaries exist.
+
+10. Prepare next session
    Codex creates the next session slate only after SUPERVISOR-DONE.
 
-10. Next session starts
+11. Next session starts
    The next session begins with the next EXECUTOR-RUNNING flag.
 ```
 
@@ -83,7 +86,8 @@ Codex internal validation and optional sub-agent checks.
 Hard ordering invariant:
 
 - `SUPERVISOR-DONE` is invalid until Codex has observed the expected reviewer
-  terminal flag and consumed the reviewer artifact or recorded the locked timeout.
+  terminal flag, consumed the reviewer artifact, and updated summaries or
+  recorded the locked timeout.
 - If `SUPERVISOR-DONE` has an earlier timestamp than the required
   `REVIEWER-DONE`, the session is out of order. Codex must mark a protocol
   violation, read and consume the review, update `decision.md` or write a
@@ -128,6 +132,7 @@ Budget: 40 sessions, use up to 4 GPUs.
 Work-unit scope: compare metrics and rendered images each session.
 Collaboration: Codex runs experiments; Claude waits and reviews after each Codex session is done.
 User intervention: ask before direct maintained-source edits.
+Memory: update loop_station/summaries after each session and compact only at clean boundaries.
 ```
 
 Start the reviewer after Codex has begun producing loop artifacts:
@@ -138,6 +143,7 @@ Watch the running Codex LOOP-STATION experiment.
 Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-READY flags.
 When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
+Update reviewer rollup/compact notes if file writes are available, then compact only after the review is durable.
 Keep watching for the next session.
 ```
 
@@ -187,6 +193,9 @@ external review. It may use sub-agents to inspect generated code, result images,
 metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
 CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
 write an independent review with improvement directions.
+Both agents should keep `loop_station/summaries/` current so context compaction
+does not lose the experiment direction. Compact only after terminal flags and
+summary updates are durable.
 
 User intervention:
 Code changes and hyperparameter changes are allowed when scientifically justified.
@@ -207,7 +216,9 @@ SUPERVISOR-READY reviewer request
 REVIEWER-RUNNING
 REVIEWER-DONE
 Codex checks flags and consumes review
+write decision.md and update rolling summaries
 SUPERVISOR-DONE
+compact checkpoint when useful
 prepare next session
 next session EXECUTOR-RUNNING
 ```
@@ -219,6 +230,14 @@ loop_station/
   FRAME.md
   contract.json
   agent_roster.md
+  summaries/
+    ROLLING_SUMMARY.md
+    SESSION_LEDGER.md
+    COMPACT_HANDOFF.md
+    REVIEWER_ROLLUP.md
+    compact/
+      session_001-CODEX5.5.md
+      session_001-CLAUDE.md
   sessions/
     session_001/
       executor_report.md
@@ -242,6 +261,23 @@ loop_station/
 ```
 
 If `contract.json` has `frame_locked: true`, later agents reuse the frame instead of asking for the goal, budget, scope, collaboration mode, or intervention boundaries again.
+
+## Rolling Summaries And Compact
+
+Session folders remain the source of truth. The `loop_station/summaries/` folder is the compact-ready layer that every agent should read first after context is reset.
+
+Codex updates these after every completed session decision and before `SUPERVISOR-DONE`:
+
+- `summaries/ROLLING_SUMMARY.md`: cumulative experiment direction, best candidate, retired paths, risks, and next plan.
+- `summaries/SESSION_LEDGER.md`: one row per session with metrics, visual judgment, reviewer status, decision, and artifact links.
+- `summaries/COMPACT_HANDOFF.md`: short operational handoff for the next agent after compact.
+
+Claude or another reviewer updates these after `REVIEWER-DONE` when file edits are available:
+
+- `summaries/REVIEWER_ROLLUP.md`: cumulative reviewer conclusions and recurring concerns.
+- `summaries/compact/session_{NNN}-{AGENT_NAME}.md`: compact note for that review/session.
+
+Codex and Claude should compact, or recommend compaction, only at a clean boundary: after terminal flags and summary updates. They should not compact during execution, review, or supervisor synthesis. After compact, resume by reading `contract.json`, `FRAME.md`, `summaries/COMPACT_HANDOFF.md`, `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and then the latest session artifacts.
 
 Flags use this naming pattern:
 
@@ -317,6 +353,8 @@ Reviewer instructions:
 - Do not execute experiments, modify code, edit frame files, or prepare the next session.
 - Write a concise scientific review: trends, likely causes, risks, and next
   experiment suggestions.
+- Update reviewer rollup and compact note if file writes are available.
+- Compact only after the review artifact, reviewer flag, and summary updates are durable.
 - After the review, Codex will consume it, write decision.md, mark
   `SUPERVISOR-DONE`, then prepare the next session.
 

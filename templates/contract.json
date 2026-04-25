@@ -46,5 +46,29 @@
     },
     "allow_skip_on_timeout": true
   },
+  "summary_policy": {
+    "summary_root": "loop_station/summaries",
+    "update_before_supervisor_terminal": true,
+    "session_ledger_required": true,
+    "rolling_summary_required": true,
+    "compact_handoff_required": true,
+    "reviewer_rollup_required_when_reviewer_can_write": true
+  },
+  "compaction_policy": {
+    "enabled": true,
+    "compact_only_at_clean_boundary": true,
+    "compact_every_sessions": 3,
+    "compact_after_long_reviewer_standby": true,
+    "require_summary_update_before_compact": true,
+    "resume_read_order": [
+      "loop_station/contract.json",
+      "loop_station/FRAME.md",
+      "loop_station/summaries/COMPACT_HANDOFF.md",
+      "loop_station/summaries/ROLLING_SUMMARY.md",
+      "loop_station/summaries/SESSION_LEDGER.md",
+      "latest sessions/session_{NNN}/decision.md",
+      "latest relevant reviewer artifact"
+    ]
+  },
   "current_session": 1
 }

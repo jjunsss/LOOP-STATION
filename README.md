@@ -284,7 +284,7 @@ See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) f
 ## Notes
 
 - LOOP-STATION is a protocol skill, not an optimizer by itself. The executor still needs project-specific commands, metrics, artifacts, and resource checks.
-- Do not use it as an unbounded retry loop. A loop must have a budget and a stop or escalation path.
-- Do not treat reviewer timeout as evidence that a result is good or bad. It is only a coordination event.
+- Consider token and runtime cost before starting a long loop. Give a session budget, resource budget, and stop condition.
+- Understand the permission level you give the agent. Full Access is useful for long runs, but it also gives broad file and command execution.
+- Give clear code-change rules: whether source edits are allowed, whether variants/backups are required, and what the agent must ask before changing.
 - Keep durable artifacts in the loop output root and keep temporary logs or generated data out of source control unless intentionally promoted.
-- Add a license before publishing for external reuse.

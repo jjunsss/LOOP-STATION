@@ -90,11 +90,13 @@ Evidence: metrics, logs, images, tests, or checks that should guide decisions
 Optional/custom: reviewer role, paths, tools, ask-before rules, summaries
 ```
 
-This is an example shape, not a required checklist. Goal, Budget, and Evidence
-(especially metrics) are usually worth including. Leave the rest out or
-customize it; add more detail only when you want tighter control.
+This is an example shape, not a required checklist. The important part is to
+brief LOOP-STATION clearly for your own project. Goal, Budget, and Evidence
+(especially metrics) are usually worth including; customize the rest freely.
+More detail gives the agents tighter control.
 
-For full copy-paste Codex and Claude examples, see
+Below is one real example command I used, with matching Codex and Claude
+prompts:
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).
 
 ## Operational Scale

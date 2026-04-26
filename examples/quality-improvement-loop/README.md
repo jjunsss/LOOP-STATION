@@ -1,15 +1,8 @@
-# Example: Quality Improvement Loop
+# Example: Long-Running Agent Loop
 
-This example is for long-running quality-improvement work where an executor
-runs experiments, a reviewer waits for finished sessions, and both agents use
-evidence to decide the next direction.
-
-Use this shape for problems like:
-
-- improving rendered image quality
-- reducing visible artifacts while protecting good regions
-- comparing metrics and visual results across many sessions
-- testing code/config variants without damaging the original project
+This example shows the command shape for a long-running loop where an executor
+runs sessions, a reviewer waits for finished work, and both agents use evidence
+to decide the next direction.
 
 ## What To Customize
 

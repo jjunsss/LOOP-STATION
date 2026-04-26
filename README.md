@@ -11,7 +11,7 @@ Claude Code, and other agents coordinated around long experiment loops where
 each session leaves reports, reviews, decisions, flags, and summaries under
 `loop_station/`.
 
-It is built for work where agents need to keep analyzing results and improve
+⭐ It is built for work where agents need to keep analyzing results and improve
 performance over many sessions. Traditional ML automation loops often stay
 inside a predeclared sweep space, such as fixed Hydra configs or parameter
 grids. LOOP-STATION lets agents inspect the actual code changes, logs, metrics,

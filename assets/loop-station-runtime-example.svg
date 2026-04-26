@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1145" height="120" viewBox="0 0 1145 120" role="img" aria-labelledby="title desc">
+  <title id="title">LOOP-STATION runtime example</title>
+  <desc id="desc">A real-use style runtime capture showing Claude monitors still running and a Codex session working for several hours.</desc>
+  <rect width="1145" height="120" fill="#f7f0ea"/>
+
+  <g font-family="Consolas, Menlo, monospace" font-size="14" font-weight="700">
+    <text x="8" y="24" fill="#7c7b7f">* churned for 3m 18s · 5 monitors still running</text>
+    <line x1="8" y1="56" x2="556" y2="56" stroke="#a8a2a0" stroke-width="1"/>
+    <line x1="8" y1="92" x2="556" y2="92" stroke="#a8a2a0" stroke-width="1"/>
+    <text x="8" y="82" fill="#151821" font-size="26">›</text>
+    <rect x="27" y="66" width="9" height="22" fill="#151821" rx="1"/>
+    <text x="24" y="114" fill="#b35875">▫▫ bypass permissions on</text>
+    <text x="225" y="114" fill="#0c8d96">· 5 monitors</text>
+    <text x="330" y="114" fill="#8e8b91">· ↓ to manage</text>
+  </g>
+
+  <line x1="578" y1="0" x2="578" y2="120" stroke="#eee4de" stroke-width="4"/>
+  <g font-family="Consolas, Menlo, monospace" font-size="14" font-weight="700">
+    <text x="618" y="25" fill="#544d55">• Working</text>
+    <text x="708" y="25" fill="#8a858c">(5h 23m 26s · esc to interrupt)</text>
+    <rect x="596" y="46" width="542" height="56" fill="#eee7e1"/>
+    <text x="598" y="79" fill="#151821" font-size="20">›</text>
+    <rect x="614" y="64" width="8" height="21" fill="none" stroke="#20242c" stroke-width="1.5"/>
+    <text x="645" y="116" fill="#b4aab0">gpt-5.5 xhigh fast · /data/jjunsss/splatting/HLS · Main [defa...]</text>
+  </g>
+</svg>

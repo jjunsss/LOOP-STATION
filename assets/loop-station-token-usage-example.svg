@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="927" height="303" viewBox="0 0 927 303" role="img" aria-labelledby="title desc">
+  <title id="title">LOOP-STATION token usage example</title>
+  <desc id="desc">A real-use style token usage chart showing a large CLI spike after many days of LOOP-STATION usage.</desc>
+  <rect width="927" height="303" fill="#ffffff"/>
+
+  <g font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#5c6068">
+    <text x="0" y="52">100%</text>
+    <text x="0" y="220">0%</text>
+    <text x="22" y="234">Mar 26</text>
+    <text x="876" y="234">Apr 24</text>
+  </g>
+
+  <g transform="translate(20,58)">
+    <rect x="0" y="133" width="24" height="27" fill="#f37b18" rx="4"/>
+    <rect x="30" y="153" width="24" height="7" fill="#f37b18" rx="3"/>
+    <rect x="60" y="155" width="24" height="5" fill="#f37b18" rx="3"/>
+    <rect x="90" y="151" width="24" height="9" fill="#f37b18" rx="3"/>
+    <rect x="120" y="145" width="24" height="15" fill="#f37b18" rx="3"/>
+
+    <rect x="150" y="132" width="24" height="28" fill="#e64aa0" rx="3"/>
+    <rect x="150" y="132" width="24" height="3" fill="#f37b18"/>
+    <rect x="180" y="152" width="24" height="8" fill="#e64aa0" rx="3"/>
+    <rect x="210" y="151" width="24" height="9" fill="#e64aa0" rx="3"/>
+    <rect x="210" y="150" width="24" height="3" fill="#f37b18"/>
+
+    <rect x="240" y="111" width="24" height="49" fill="#e64aa0" rx="3"/>
+    <rect x="240" y="111" width="24" height="27" fill="#707680"/>
+    <rect x="270" y="155" width="24" height="5" fill="#f37b18" rx="3"/>
+    <rect x="300" y="144" width="24" height="16" fill="#e64aa0" rx="3"/>
+    <rect x="300" y="144" width="24" height="5" fill="#f37b18"/>
+    <rect x="330" y="142" width="24" height="18" fill="#e64aa0" rx="3"/>
+    <rect x="330" y="142" width="24" height="4" fill="#f37b18"/>
+    <rect x="360" y="149" width="24" height="11" fill="#e64aa0" rx="3"/>
+    <rect x="390" y="145" width="24" height="15" fill="#e64aa0" rx="3"/>
+    <rect x="390" y="145" width="24" height="4" fill="#f37b18"/>
+    <rect x="420" y="138" width="24" height="22" fill="#e64aa0" rx="3"/>
+    <rect x="450" y="152" width="24" height="8" fill="#e64aa0" rx="3"/>
+    <rect x="480" y="158" width="24" height="2" fill="#e64aa0" rx="2"/>
+    <rect x="510" y="144" width="24" height="16" fill="#e64aa0" rx="3"/>
+    <rect x="540" y="136" width="24" height="24" fill="#e64aa0" rx="3"/>
+    <rect x="540" y="137" width="24" height="5" fill="#f37b18"/>
+    <rect x="570" y="134" width="24" height="26" fill="#e64aa0" rx="3"/>
+    <rect x="600" y="147" width="24" height="13" fill="#e64aa0" rx="3"/>
+    <rect x="630" y="121" width="24" height="39" fill="#e64aa0" rx="5"/>
+    <rect x="660" y="148" width="24" height="12" fill="#e64aa0" rx="3"/>
+    <rect x="660" y="148" width="24" height="5" fill="#f37b18"/>
+    <rect x="690" y="154" width="24" height="6" fill="#e64aa0" rx="3"/>
+    <rect x="720" y="129" width="24" height="31" fill="#e64aa0" rx="4"/>
+    <rect x="750" y="122" width="24" height="38" fill="#e64aa0" rx="4"/>
+    <rect x="780" y="135" width="24" height="25" fill="#e64aa0" rx="4"/>
+    <rect x="810" y="127" width="24" height="33" fill="#e64aa0" rx="4"/>
+    <rect x="840" y="131" width="24" height="29" fill="#e64aa0" rx="4"/>
+    <rect x="872" y="0" width="24" height="160" fill="#e64aa0" rx="4"/>
+  </g>
+
+  <g transform="translate(0,292)" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#333">
+    <rect x="0" y="-5" width="7" height="7" fill="#d92323"/>
+    <text x="9" y="1">Desktop App</text>
+    <rect x="103" y="-5" width="7" height="7" fill="#e64aa0"/>
+    <text x="112" y="1">CLI</text>
+    <rect x="143" y="-5" width="7" height="7" fill="#f37b18"/>
+    <text x="152" y="1">Extension</text>
+    <rect x="231" y="-5" width="7" height="7" fill="#707680"/>
+    <text x="240" y="1">Other</text>
+  </g>
+</svg>

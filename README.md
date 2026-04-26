@@ -343,6 +343,14 @@ Codex and Claude should compact, or recommend compaction, only at a clean bounda
 
 LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude stayed in standby through monitor tooling and woke when review-ready flags appeared.
 
+<p align="center">
+  <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">
+</p>
+
+<p align="center">
+  <img src="./assets/loop-station-token-usage-example.svg" alt="LOOP-STATION token usage example" width="88%">
+</p>
+
 This is why reviewer-maintained summaries are part of the protocol: the reviewer absorbs the cost of reading historical logs and trends, then leaves compact executor briefs so the next Codex session can plan from durable summaries instead of replaying the whole history.
 
 Flags use this naming pattern:

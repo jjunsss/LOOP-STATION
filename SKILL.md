@@ -43,6 +43,42 @@ If the frame is still too ambiguous to protect budget or artifacts, abstain inst
 
 The supervisor must explicitly state `FRAME LOCKED` before the first session plan or execution step. If `FRAME LOCKED` has not been stated, the loop has not started.
 
+## Budget And Pivot Rule
+
+Treat `max_sessions` or a requested session count as usable loop budget, not as a
+reason to close early. A session budget may end early only when the user gave an
+explicit stop condition, the budget is actually exhausted, the user asks to stop,
+or every viable next axis is blocked and the supervisor writes `ask_user` or
+`ABSTAIN` with evidence.
+
+Repeated bad trends, a zero-promotion streak, or falsification of the current
+direction means the current axis is exhausted. It does not mean the loop is
+complete while budget remains.
+
+When an axis becomes unpromising:
+
+1. Identify the best known candidate/checkpoint so far and the evidence that made
+   it best.
+2. Mark the harmful or exhausted axis as retired, superseded, or
+   `do_not_continue`; do not stack more changes on top of a bad branch.
+3. Return to or branch from the best known candidate using loop-owned variants,
+   backups, or restore manifests.
+4. Pick a different axis from open questions, reviewer notes, confounds, visual
+   failures, code/config audit findings, or untested mechanisms.
+5. Record the pivot rationale, retired direction, selected restart point, and
+   remaining session budget in `decision.md`, `ROLLING_SUMMARY.md`,
+   `SESSION_LEDGER.md`, and `COMPACT_HANDOFF.md`.
+6. Start the next session from that pivot after `SUPERVISOR-DONE`.
+
+Do not write a final close/phase-complete decision simply because the current
+axis failed. Use `stop` only for true stop conditions. Use `pivot_axis`,
+`retire_axis`, `return_to_best`, or `needs_new_axis` when budget remains.
+
+If an agent already wrote a premature close marker or decision, preserve it as
+provenance. Do not delete it. Write a repair/superseded note, update the contract
+or summary state to reopened/continuing, and resume from the best known candidate
+with the next session number.
+
 ## Shared Loop Station Folder
 
 When a frame is locked, persist it in a shared folder so executor and reviewer agents can continue without asking the same questions again.
@@ -413,15 +449,18 @@ Before external reviewer handoff, the supervisor must:
 
 1. Read metrics, logs, result artifacts, run configs, executor reports, executor proposals, and prior reviewer notes.
 2. Compare against baseline, current best, previous session, and user goal.
-3. Classify directions as `promote`, `keep`, `retire`, `needs_more_evidence`, `needs_code_variant`, `stop`, or `ask_user`.
+3. Classify directions as `promote`, `keep`, `retire`, `pivot_axis`,
+   `return_to_best`, `needs_more_evidence`, `needs_code_variant`, `stop`, or
+   `ask_user`.
 4. Draft a provisional next direction for reviewer inspection:
    - change important parameters
    - continue a promising axis
    - reduce or reverse a harmful axis
+   - return to the best known candidate and pivot to a new axis
    - add an isolated implementation variant
    - expand or reduce work-unit scope
    - wait for review
-   - stop or abstain
+   - stop or abstain only when a true stop condition is met
 5. Write `supervisor_analysis.md` with rationale, verification notes, and the review questions.
 6. Write `SUPERVISOR-READY` for external review.
 
@@ -429,7 +468,8 @@ After external reviewer feedback is available or skipped by policy, the supervis
 
 1. Complete the Sequential Collaboration Gate for any required reviewer/tester/cooperating-agent request.
 2. Read consumed review artifacts and record them in `review_flags.md`.
-3. Write `decision.md` with the integrated judgment and next action.
+3. Write `decision.md` with the integrated judgment, remaining budget, best known
+   candidate, retired axes, pivot decision when relevant, and next action.
 4. Update `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and `summaries/COMPACT_HANDOFF.md`.
 5. Write a supervisor terminal flag for the session, such as `CODEX5.5-SESSION050-SUPERVISOR-DONE`, after `decision.md` exists, summaries are updated, and the flag points to the executor report, proposal, supervisor analysis, consumed review artifacts, summaries, and next action. If the supervisor cannot make a decision, write `SUPERVISOR-BLOCKED` or `SUPERVISOR-ABSTAIN` with the reason.
 6. Generate the next session slate only after both `decision.md` and the supervisor terminal flag exist.
@@ -678,3 +718,6 @@ Final summaries must separate:
 - Do not proceed after code-variant creation unless the manifest points back to the source state.
 - Do not accept anonymous review flags.
 - Do not treat one artifact's improvement as success when protection criteria fail, unless the user goal explicitly allows that tradeoff.
+- Do not close the loop just because one direction was falsified or produced a
+  long bad trend while session budget remains. Retire that direction, return to
+  the best known candidate, and pivot to another axis.

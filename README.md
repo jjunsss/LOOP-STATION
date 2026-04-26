@@ -71,13 +71,17 @@ flowchart LR
   C --> D["Review opens<br/>SUPERVISOR-READY"]
   D --> E["Reviewer waits, reads, reviews<br/>REVIEWER-DONE"]
   E --> F["Codex consumes review<br/>decision + summaries"]
-  F --> G["Session closes<br/>SUPERVISOR-DONE"]
+  F --> G["Session ends<br/>SUPERVISOR-DONE"]
   G --> H["Next session starts"]
 ```
 
 Simple rule: reviewers start after `EXECUTOR-DONE` + `SUPERVISOR-READY`, and
 Codex starts the next session only after it has consumed `REVIEWER-DONE`, written
-the decision, updated summaries, and closed the session with `SUPERVISOR-DONE`.
+the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
+
+If a direction keeps getting worse, LOOP-STATION should not stop the whole loop.
+It should go back to the best known candidate, retire the bad direction, and test
+a different axis while budget remains.
 
 Reviews can include visual image checks, metric/log analysis, code/config audit,
 and artifact-completeness checks. Experiments should use loop-owned variants or
@@ -99,9 +103,10 @@ budget, and agent roles are clear.
 $loop-station
 Improve subject 200014 full-body quality.
 Use PSNR, LPIPS, SSIM, and rendered-image checks each session.
-Run up to 40 sessions and use up to 4 GPUs.
+Use a 40-session budget and up to 4 GPUs.
 Codex should run experiments and write its own analysis.
 Claude should wait until Codex marks the session review-ready, then write a scientific review.
+If one direction fails repeatedly, return to the best result so far and pivot to a new direction.
 Ask me before editing original project files, deleting outputs, or changing the goal.
 Keep rolling summaries in loop_station/summaries so agents can compact and continue.
 ```
@@ -126,7 +131,7 @@ Useful details to include:
 Target: the subject, item, model, dataset, bug, or decision
 Context: prior runs, current artifacts, important paths, or known failures
 Evidence: metrics, rendered images, logs, visual checks, or regression guards
-Limit: max sessions, wall time, GPUs, cost, or stop condition
+Budget / limit: session budget, wall time, GPUs, cost, or stop condition
 Roles: who runs experiments, who reviews, and when the reviewer should start
 Ask before: source edits, deletion, goal changes, extra resources, or risky operations
 Memory: what summaries to keep so agents can compact and continue
@@ -165,9 +170,11 @@ session. Foot floaters may be a symptom of poor whole-body quality, so do not
 optimize only local foot artifacts if the full-body result regresses.
 
 Budget:
-Run up to 40 sessions. You may use all 4 GPUs. Treat one session as a batch of
+Use a 40-session budget. You may use all 4 GPUs. Treat one session as a batch of
 variants across GPUs, then aggregate metrics, images, logs, and failures before
-choosing the next session.
+choosing the next session. Use the session budget for exploration unless a real
+stop condition is reached. If a trend is repeatedly bad, return to the best known
+candidate and pivot to a different axis instead of closing the loop.
 
 Session focus:
 Focus on subject 200014. Compare each variant against current best, relevant

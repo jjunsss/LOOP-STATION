@@ -251,30 +251,9 @@ next session.
 
 </details>
 
-## Rolling Summaries And Compact
-
-Session folders keep the raw artifacts. `loop_station/summaries/` is the memory
-layer agents read first after long runs or context compaction.
-
-Codex keeps the main direction current:
-
-- `ROLLING_SUMMARY.md`: what has worked, failed, and should happen next.
-- `SESSION_LEDGER.md`: one row per session.
-- `COMPACT_HANDOFF.md`: what the next agent should read first.
-
-The reviewer keeps the token-saving brief current:
-
-- `REVIEWER_ROLLUP.md`: recurring reviewer conclusions.
-- `LOG_TREND_SUMMARY.md`: useful trends from old logs and failures.
-- `EXECUTOR_BRIEF.md`: the short brief Codex should use before planning.
-
-Compact only after the current agent has written its artifact, flag, and summary
-updates. After compact, agents should read the summaries first and open old raw
-logs only when a specific detail needs verification.
-
 ## Operational Scale
 
-LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude held through monitor tooling and woke when review-ready flags appeared.
+LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Agents leave compact briefs in `loop_station/summaries/` so they can resume after context resets without rereading every old log. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude held through monitor tooling and woke when review-ready flags appeared.
 
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">

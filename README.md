@@ -91,8 +91,7 @@ Reviewer: who should review, when to start, and what style/tools to use
 Ask before: source edits, deletion, goal changes, or budget changes
 ```
 
-Leave unknown details out. Codex will ask for missing essentials, then reuse the
-same loop state for later executor and reviewer turns.
+Leave unknown details out. Add more detail when you want tighter control.
 
 For full copy-paste Codex and Claude examples, see
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).

@@ -281,4 +281,5 @@ See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) f
 - Consider token and runtime cost before starting a long loop. Give a session budget, resource budget, and stop condition.
 - Understand the permission level you give the agent. Full Access can reduce repeated prompts and save tokens in long trusted runs, but it also gives broad file and command execution.
 - Give clear code-change rules: whether source edits are allowed, whether variants/backups are required, and what the agent must ask before changing.
+- Check intermediate trends when you can. The user can intervene mid-loop, redirect the next axis, or stop a weak direction before the budget is spent.
 - Keep durable artifacts in the loop output root and keep temporary logs or generated data out of source control unless intentionally promoted.

@@ -4,9 +4,9 @@
 
 # LOOP-STATION
 
-**A live multi-agent loop where executors and reviewers keep watching, exchange feedback, and move only on verified flags.**
+**A live multi-agent loop where executors and reviewers take turns, exchange evidence, and use shared flags to coordinate timing.**
 
-LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment: Codex runs bounded sessions, reviewers wait for terminal flags, feedback is written to shared artifacts, and the next session starts only after the loop has evidence.
+LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment. Codex runs bounded sessions, reviewers hold until the session is ready, feedback is written to shared artifacts, and the next session starts only after the prior work has been reviewed and summarized.
 
 ## Install
 
@@ -45,7 +45,7 @@ LOOP-STATION is for live feedback loops, not one-off prompts.
 Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next session
 ```
 
-Agents should stay in standby, monitor `loop_station/flags/`, and act only when the required `DONE`, `BLOCKED`, or `ABSTAIN` flags and linked artifacts exist.
+Agents do not all run at once. Each agent works when it has a job, holds when it is waiting, and uses small flag files in `loop_station/flags/` to tell the other agents what happened: running, ready, done, blocked, or abstained. Those flags are the timing signals that keep Codex, Claude, and other reviewers from writing too early or moving to the next session before the right artifacts exist.
 
 ## Canonical Session Lifecycle
 
@@ -94,16 +94,18 @@ Codex internal validation and optional sub-agent checks.
 
 Hard ordering invariant:
 
-- `SUPERVISOR-DONE` is invalid until Codex has observed the expected reviewer
-  terminal flag, consumed the reviewer artifact, and updated summaries or
-  recorded the locked timeout.
-- If `SUPERVISOR-DONE` has an earlier timestamp than the required
-  `REVIEWER-DONE`, the session is out of order. Codex must mark a protocol
-  violation, read and consume the review, update `decision.md` or write a
-  repair decision, then write `SUPERVISOR-REPAIRED` before preparing or starting
-  the next session.
-- The next session must not be prepared from a reviewed session whose reviewer
-  output has not been consumed in `review_flags.md`.
+The simple rule is: Codex cannot close a reviewed session until the reviewer has
+finished or the agreed wait policy says to continue. In flag terms,
+`SUPERVISOR-DONE` is invalid until Codex has consumed the expected reviewer
+output and updated summaries, or recorded the locked timeout.
+
+If `SUPERVISOR-DONE` appears before the required `REVIEWER-DONE`, the session is
+out of order. Codex must mark a protocol violation, read and consume the review,
+update `decision.md` or write a repair decision, then write
+`SUPERVISOR-REPAIRED` before preparing or starting the next session.
+
+The next session must not be prepared from a reviewed session whose reviewer
+output has not been consumed in `review_flags.md`.
 
 ## What the Skill Does
 
@@ -175,7 +177,7 @@ Start the reviewer after Codex has begun producing loop artifacts:
 ```text
 /loop-station
 Watch the running Codex LOOP-STATION experiment.
-Stay in standby until each session has EXECUTOR-DONE and SUPERVISOR-READY flags.
+Hold and keep watching until Codex says the session is finished and ready for external review (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
 When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
 Perform visual image checks and code/config audit when relevant. Use sub-agents for separate audit axes if available.
 Summarize prior experiment trends and relevant logs so Codex can plan without rereading all historical raw logs.
@@ -208,8 +210,9 @@ executor_report.md, executor_proposal.md, supervisor_analysis.md, flags, and the
 final decision.md after reviewer feedback.
 CLAUDE or another specified reviewer model/version: external reviewer only.
 Use a reviewer instruction profile: "act as a scientific reviewer and auditor,
-not as executor." Stay in standby until CODEX writes EXECUTOR-DONE and
-SUPERVISOR-READY. Then review the artifacts scientifically and write reviewer output.
+not as executor." Hold until CODEX marks the session as finished and review-ready
+(`EXECUTOR-DONE` + `SUPERVISOR-READY`). Then review the artifacts scientifically
+and write reviewer output.
 
 Goal:
 Improve the full-body human quality for subject 200014. Use quantitative metrics
@@ -241,8 +244,8 @@ The review request should specify the reviewer identity, such as "Claude Code",
 audit reviewer instruction", so the reviewer is intentionally different from
 the executor path.
 Both agents should keep `loop_station/summaries/` current so context compaction
-does not lose the experiment direction. Compact only after terminal flags and
-summary updates are durable.
+does not lose the experiment direction. Compact only after the current agent has
+finished its turn, written the required flag, and updated summaries.
 CLAUDE should maintain `LOG_TREND_SUMMARY.md` and `EXECUTOR_BRIEF.md` from prior
 sessions and logs so CODEX can use those summaries first instead of spending
 tokens rereading all historical logs.
@@ -335,11 +338,17 @@ Claude or another reviewer updates these after `REVIEWER-DONE` when file edits a
 
 The reviewer should spend the tokens needed to inspect previous summaries and relevant historical logs, then write the trend/log digest. Codex should not reread all old logs by default when a new session starts. It should first read `EXECUTOR_BRIEF.md`, `LOG_TREND_SUMMARY.md`, `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and the latest decision/review artifacts. Codex opens raw historical logs only when a summary is inconsistent, incomplete, or a specific old detail affects the next design.
 
-Codex and Claude should compact, or recommend compaction, only at a clean boundary: after terminal flags and summary updates. They should not compact during execution, review, or supervisor synthesis. After compact, resume by reading `contract.json`, `FRAME.md`, `summaries/COMPACT_HANDOFF.md`, `summaries/EXECUTOR_BRIEF.md`, `summaries/LOG_TREND_SUMMARY.md`, `summaries/ROLLING_SUMMARY.md`, `summaries/SESSION_LEDGER.md`, and then the latest session artifacts.
+Codex and Claude should compact, or recommend compaction, only at a clean
+boundary: after the current agent has finished its turn and summaries are
+updated. They should not compact during execution, review, or supervisor
+synthesis. After compact, resume by reading `contract.json`, `FRAME.md`,
+`summaries/COMPACT_HANDOFF.md`, `summaries/EXECUTOR_BRIEF.md`,
+`summaries/LOG_TREND_SUMMARY.md`, `summaries/ROLLING_SUMMARY.md`,
+`summaries/SESSION_LEDGER.md`, and then the latest session artifacts.
 
 ## Operational Scale
 
-LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude stayed in standby through monitor tooling and woke when review-ready flags appeared.
+LOOP-STATION is intended for long-running agent work, not a single short prompt. In a real full-use run, token use can climb sharply over days as the loop accumulates experiments, reviews, images, logs, and summaries. Claude Code can stay alive through monitor/background watcher tooling without continuously consuming active execution time, while Codex may run long executor/supervisor sessions that continue for many hours. In one heavy run, Codex continued for more than 10 hours across handoffs, while Claude held through monitor tooling and woke when review-ready flags appeared.
 
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">
@@ -369,14 +378,21 @@ CLAUDE-SESSION050-REVIEWER-DONE
 CODEX5.5-SESSION050-SUPERVISOR-DONE
 ```
 
-Reviewer waits are controlled by `review_wait_policy` in `contract.json`. The executor records review start, heartbeat, and completion timeouts, then proceeds only when the locked policy allows it.
+Reviewer waits are bounded so Codex does not wait forever. The wait policy in
+`contract.json` tells Codex how long to wait for a reviewer to start, keep
+working, or finish. Codex records those timing events, then proceeds only when
+that locked policy allows it.
 
-Do not move `REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` is the reviewer request signal: Codex has already completed its internal validation, written `supervisor_analysis.md`, and prepared the artifacts the external reviewer should inspect.
+The reviewer should not start early. In flag terms, do not write
+`REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has
+already completed its internal validation, written `supervisor_analysis.md`, and
+prepared the artifacts the external reviewer should inspect.
 
-Do not write `SUPERVISOR-DONE` before the required reviewer terminal flag has
-been observed and consumed. A `SUPERVISOR-DONE` timestamp earlier than
-`CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag` means Codex skipped final synthesis and
-the session must be marked `SUPERVISOR-VIOLATION`, repaired, and then marked
+Codex should not close the session before reading the reviewer output. In flag
+terms, do not write `SUPERVISOR-DONE` before the required reviewer completion
+flag has been observed and consumed. A `SUPERVISOR-DONE` timestamp earlier than
+`CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag` means Codex skipped final synthesis; the
+session must be marked `SUPERVISOR-VIOLATION`, repaired, and then marked
 `SUPERVISOR-REPAIRED` before the next session starts.
 
 ## Claude Code Reviewer Mode
@@ -393,7 +409,13 @@ Codex uses the review when deciding the next session
 
 The `loop_station/` folder is created by the running loop, but Claude may not know where it is or what the experiment is about. Give Claude enough context to find the run and understand what kind of review you want.
 
-If Claude is invoked before Codex finishes the current session, Claude should stay in reviewer standby. It should poll the relevant `flags/session_{NNN}/` folder and wait until Codex has written `EXECUTOR-DONE` plus `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has already reviewed its own results, written its analysis/explanation, and prepared the artifacts for external review. Claude should not modify `FRAME.md`, `contract.json`, code, configs, or session artifacts while waiting.
+If Claude is invoked before Codex finishes the current session, Claude should hold
+and watch rather than writing a review immediately. It should poll the relevant
+`flags/session_{NNN}/` folder and wait until Codex has written `EXECUTOR-DONE`
+plus `SUPERVISOR-READY`. That pair means Codex has finished the run, reviewed its
+own results, and prepared the artifacts for external review. Claude should not
+modify `FRAME.md`, `contract.json`, code, configs, or session artifacts while
+waiting.
 
 If the request asks Claude to keep waiting continuously, Claude should use its available Monitor/background watcher tool immediately. The watcher should poll for review-ready flags and linked artifacts, then trigger one review per ready session.
 
@@ -417,10 +439,10 @@ Reviewer instructions:
 - Use this identity: external scientific reviewer and auditor. Do not act as
   executor or supervisor unless explicitly reassigned.
 - If FRAME.md and contract.json exist, reuse them instead of asking setup questions.
-- If Codex has not finished the current session, stay in standby.
-- For continuous standby, start the available Monitor/background watcher immediately.
-- Review only after `EXECUTOR-DONE` and `SUPERVISOR-READY` exist and linked
-  artifacts are readable.
+- If Codex has not finished the current session, hold and keep watching.
+- For continuous holding/watching, start the available Monitor/background watcher immediately.
+- Review only after Codex has marked the session finished and review-ready
+  (`EXECUTOR-DONE` + `SUPERVISOR-READY`) and linked artifacts are readable.
 - Read executor_report.md, executor_proposal.md, supervisor_analysis.md,
   reviewer_requests.md, metrics, logs, diffs, generated code, result images,
   and artifacts.
@@ -433,7 +455,7 @@ Reviewer instructions:
 - Write a concise scientific review: trends, likely causes, risks, and next
   experiment suggestions.
 - Update reviewer rollup and compact note if file writes are available.
-- Compact only after the review artifact, reviewer flag, and summary updates are durable.
+- Compact only after the review artifact, reviewer timing signal, and summary updates are durable.
 - After the review, Codex will consume it, write decision.md, mark
   `SUPERVISOR-DONE`, then prepare the next session.
 

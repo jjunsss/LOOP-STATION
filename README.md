@@ -71,11 +71,9 @@ Simple rule: reviewers start after `EXECUTOR-DONE` + `SUPERVISOR-READY`, and
 Codex starts the next session only after it has consumed `REVIEWER-DONE`, written
 the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
 
-Reviews can include visual image checks, metric/log analysis, code/config audit,
-artifact-completeness checks, and literature-backed reasoning when useful. A
-good reviewer should be willing to challenge the current direction: explain why
-an intervention likely failed, what evidence supports that explanation, and what
-different mechanism should be tested next. Experiments should use loop-owned
+Tell LOOP-STATION what tools, checks, and review style you want. For example,
+you can ask for visual checks, metric checks, code audit, literature-backed
+review, or a stricter scientific reviewer. Experiments should use loop-owned
 variants or copies by default so the original project state is not changed unless
 the user approves it.
 

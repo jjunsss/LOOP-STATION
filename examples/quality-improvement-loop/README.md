@@ -17,7 +17,7 @@ Use this shape for problems like:
 Goal: what should improve or be decided
 Evidence: metrics, images, logs, or checks that matter
 Budget: sessions, time, resources, or stop condition
-Reviewer: who reviews, when to start, and what style/tools to use
+Reviewer: who reviews, when to start, and whether to include literature/method checks
 Ask before: source edits, deletion, goal changes, budget changes
 ```
 
@@ -63,7 +63,8 @@ CODEX should run the experiments and perform its own supervisor analysis before
 external review. It may use sub-agents to inspect generated code, result images,
 metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
 CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
-write an independent review with improvement directions.
+write an independent review with improvement directions. Literature and prior-method
+research belongs to CLAUDE review unless you explicitly assign it to CODEX.
 
 Reviewer expectations:
 CLAUDE may perform visual image checks, code/config audit, metric/log analysis,

@@ -241,6 +241,8 @@ The executor must:
 
 The executor's own report must include analysis, not only a metric dump. It should identify surprising results, harmful directions, promising directions, and why the next intervention is justified.
 
+The executor should not spend execution budget browsing papers, searching prior art, or doing literature research unless the user explicitly assigns that to the executor. For normal loops, put literature/method questions into `reviewer_requests.md` and let the external reviewer handle them.
+
 ### Supervisor Self-Review Phase
 
 After `EXECUTOR-DONE` and before `SUPERVISOR-READY`, Codex or the active supervisor must review its own session output. This is not the external reviewer step.
@@ -251,7 +253,7 @@ The supervisor must:
 2. Read `executor_report.md`, `executor_proposal.md`, metrics, logs, result images, code diffs, manifests, and prior decisions.
 3. Use sub-agents or helper reviewers when available to verify generated code, metrics, visual artifacts, logs, and variant summaries.
 4. Write `supervisor_analysis.md` with the supervisor's own explanation, trend interpretation, verification notes, risks, and recommended reviewer questions.
-5. Update `reviewer_requests.md` with exact artifacts the external reviewer should inspect.
+5. Update `reviewer_requests.md` with exact artifacts the external reviewer should inspect, including any literature/method questions the reviewer should investigate.
 6. Only after `supervisor_analysis.md`, `executor_report.md`, `executor_proposal.md`, and referenced artifacts are readable, write `SUPERVISOR-READY`.
 
 `SUPERVISOR-READY` means Codex has already executed the session and completed its own analysis/verification. It does not mean the session is finally decided. The final session decision comes later, after reviewer feedback is consumed.

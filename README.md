@@ -72,8 +72,8 @@ Codex starts the next session only after it has consumed `REVIEWER-DONE`, writte
 the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
 
 Tell LOOP-STATION what tools, checks, and review style you want. For example,
-you can ask for visual checks, metric checks, code audit, literature-backed
-review, or a stricter scientific reviewer. Experiments should use loop-owned
+you can ask the reviewer for visual checks, metric checks, code audit,
+literature/method checks, or a stricter scientific review. Experiments should use loop-owned
 variants or copies by default so the original project state is not changed unless
 the user approves it.
 
@@ -85,9 +85,9 @@ experiment brief; you do not need special protocol words.
 ```text
 $loop-station
 Goal: what you want to improve or decide
-Evidence: metrics, images, logs, papers, or checks you care about
+Evidence: metrics, images, logs, or checks you care about
 Budget: sessions, time, GPUs/resources, or stop condition
-Reviewer: who should review, when to start, and what style/tools to use
+Reviewer: who should review, when to start, and whether to include literature/method checks
 Ask before: source edits, deletion, goal changes, or budget changes
 ```
 

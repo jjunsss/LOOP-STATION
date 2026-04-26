@@ -270,20 +270,6 @@ plans after a normal chat would have stopped.
 Agents leave compact briefs in `loop_station/summaries/` so they can wake back
 up from summaries instead of replaying every old log.
 
-## Claude Code Reviewer Mode
-
-Use Claude after Codex has started the run. Give Claude the project path or
-`loop_station/` path, the experiment context, and the review focus.
-
-If the session is not ready, Claude should hold and watch. For continuous
-waiting, ask it to start its Monitor/background watcher. Claude should review
-only after Codex has written `EXECUTOR-DONE` + `SUPERVISOR-READY`.
-
-Claude should write the review artifact and `REVIEWER-DONE` flag, update reviewer
-summaries when possible, and then keep watching for the next session. A full
-copy-paste Claude prompt is inside the **Realistic Experiment Command** toggle
-above.
-
 ## Example
 
 See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) for a generic quality-improvement loop frame and artifact layout.

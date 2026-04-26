@@ -109,20 +109,24 @@ project state is not mutated unless the user explicitly approves it.
 
 ## How to Command It
 
-Invoke LOOP-STATION with a required frame. The frame can be short, but it can also include project context, prior loop references, metrics, compute budget, collaboration rules, and experiment preferences.
+Write the command like a short experiment brief. You do not need special protocol
+words. Tell LOOP-STATION what you want, what evidence matters, how far it may
+run, and who should do which part.
 
 ### Minimal Live Loop
 
-The minimal frame can be short, but better goals produce better loops. Include concrete context, target subjects/items, important metrics, visual checks, compute budget, and who should execute or review whenever you know them.
+The command can be short. It works better when the goal, metrics, visual checks,
+budget, and agent roles are clear.
 
 ```text
 $loop-station
-Goal: improve subject 200014 full-body quality.
-Budget: 40 sessions, use up to 4 GPUs.
-Work-unit scope: compare metrics and rendered images each session.
-Collaboration: Codex runs experiments; Claude waits and reviews after each Codex session is done.
-User intervention: ask before direct maintained-source edits.
-Memory: reviewer summarizes prior trends/logs for Codex in loop_station/summaries; compact only at clean boundaries.
+Improve subject 200014 full-body quality.
+Use PSNR, LPIPS, SSIM, and rendered-image checks each session.
+Run up to 40 sessions and use up to 4 GPUs.
+Codex should run experiments and write its own analysis.
+Claude should wait until Codex marks the session review-ready, then write a scientific review.
+Ask me before editing original project files, deleting outputs, or changing the goal.
+Keep rolling summaries in loop_station/summaries so agents can compact and continue.
 ```
 
 Start the reviewer after Codex has begun producing loop artifacts:
@@ -139,17 +143,21 @@ Update reviewer rollup/compact notes if file writes are available, then compact 
 Keep watching for the next session.
 ```
 
-Frame fields:
+Useful details to include:
 
 ```text
-Goal: what should improve or be decided
-Budget: max sessions, wall time, resource pool, cost, or stop limit
-Work-unit scope: one item, a fixed set, or a robustness set
-Collaboration: supervisor only, executor + reviewer, or external review
-User intervention: changes that require explicit approval
+Target: the subject, item, model, dataset, bug, or decision
+Context: prior runs, current artifacts, important paths, or known failures
+Evidence: metrics, rendered images, logs, visual checks, or regression guards
+Limit: max sessions, wall time, GPUs, cost, or stop condition
+Roles: who runs experiments, who reviews, and when the reviewer should start
+Ask before: source edits, deletion, goal changes, extra resources, or risky operations
+Memory: what summaries to keep so agents can compact and continue
 ```
 
-If any required field is missing, LOOP-STATION should ask only for the missing parts and keep asking until the frame is complete. Once the frame is locked, later agents reuse the same shared state instead of asking the setup questions again.
+If something essential is missing, LOOP-STATION should ask only for that missing
+detail. Once the run is started, later agents reuse the shared state instead of
+asking the same setup questions again.
 
 <details>
 <summary><strong>Realistic Experiment Command</strong></summary>
@@ -184,11 +192,11 @@ Run up to 40 sessions. You may use all 4 GPUs. Treat one session as a batch of
 variants across GPUs, then aggregate metrics, images, logs, and failures before
 choosing the next session.
 
-Work-unit scope:
+Session focus:
 Focus on subject 200014. Compare each variant against current best, relevant
 anchors, and prior loop artifacts using both metrics and visual evidence.
 
-Collaboration:
+Roles:
 CODEX should run the experiments and perform its own supervisor analysis before
 external review. It may use sub-agents to inspect generated code, result images,
 metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
@@ -209,7 +217,7 @@ CLAUDE should maintain `LOG_TREND_SUMMARY.md` and `EXECUTOR_BRIEF.md` from prior
 sessions and logs so CODEX can use those summaries first instead of spending
 tokens rereading all historical logs.
 
-User intervention:
+Ask before:
 Code changes and hyperparameter changes are allowed when scientifically justified.
 Prefer diverse, informative experiments over tiny one-parameter nudges. Ask before
 directly patching maintained source if an isolated variant is not enough. If a

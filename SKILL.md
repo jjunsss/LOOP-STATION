@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, maintain compact-ready rolling summaries, and move to the next session only after required flags and artifacts exist. First lock goal, budget, work-unit scope, collaboration protocol, and user-intervention boundaries; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
+description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, maintain compact-ready rolling summaries, and move to the next session only after required flags and artifacts exist. First lock what to improve, run limits, session target/scope, agent roles, and what to ask before doing; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
 ---
 
 # Loop Station
@@ -15,13 +15,17 @@ The user may speak Korean, English, or both. Match the user's language in chat, 
 
 Do not start from variants. Start from the decision frame.
 
-Before launching any loop, obtain or infer the required user frame:
+Before launching any loop, obtain or infer the required user brief. Accept plain
+language. The user does not need to use internal protocol field names.
 
 - goal: what the loop must improve or decide
 - budget: max sessions, resource pool, wall-time, cost, or other hard limit
-- work-unit scope: one sample/item/case, a fixed set, or a robustness/generalization set
-- collaboration mode: supervisor only, executor/reviewer split, or external review flag
-- user intervention points: changes that require explicit user approval
+- session target/scope: one sample/item/case, a fixed set, or a robustness/generalization set
+- roles: supervisor only, executor/reviewer split, or external review flag
+- ask-before rules: changes that require explicit user approval, such as source edits, deletion, goal changes, extra resources, or risky operations
+
+When writing `contract.json`, store these as `goal`, `budget`,
+`work_unit_scope`, `collaboration_mode`, and `user_intervention_points`.
 
 Ask only for missing user-owned frame fields, but keep asking until no required field is missing. Do not proceed to planning, session creation, execution, or code-variant creation until the frame is complete.
 
@@ -96,7 +100,7 @@ loop_station/
 - `summary_policy`
 - `compaction_policy`
 
-If `contract.json` exists and `frame_locked` is true, any later agent must reuse it. Reviewer agents must not ask the user to restate the goal, budget, work-unit scope, collaboration mode, or intervention boundaries unless the contract is internally contradictory or explicitly marked stale.
+If `contract.json` exists and `frame_locked` is true, any later agent must reuse it. Reviewer agents must not ask the user to restate the goal, budget, session scope, roles, or ask-before rules unless the contract is internally contradictory or explicitly marked stale.
 
 ## Rolling Summary And Compact Rule
 

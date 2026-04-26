@@ -71,10 +71,6 @@ Simple rule: reviewers start after `EXECUTOR-DONE` + `SUPERVISOR-READY`, and
 Codex starts the next session only after it has consumed `REVIEWER-DONE`, written
 the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
 
-If a direction keeps getting worse, LOOP-STATION should not stop the whole loop.
-It should go back to the best known candidate, retire the bad direction, and test
-a different axis while budget remains.
-
 Reviews can include visual image checks, metric/log analysis, code/config audit,
 artifact-completeness checks, and literature-backed reasoning when useful. A
 good reviewer should be willing to challenge the current direction: explain why
@@ -113,7 +109,6 @@ Use PSNR, LPIPS, SSIM, and rendered-image checks each session.
 Use a 40-session budget and up to 4 GPUs.
 Codex should run experiments and write its own analysis.
 Claude should wait until Codex marks the session review-ready, then write a scientific review.
-If one direction fails repeatedly, return to the best result so far and pivot to a new direction.
 Ask me before editing original project files, deleting outputs, or changing the goal.
 Keep rolling summaries in loop_station/summaries so agents can compact and continue.
 ```

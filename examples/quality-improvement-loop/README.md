@@ -54,8 +54,7 @@ Budget:
 Use a 40-session budget. You may use all 4 GPUs. Treat one session as a batch of
 variants across GPUs, then aggregate metrics, images, logs, and failures before
 choosing the next session. Use the session budget for exploration unless a real
-stop condition is reached. If a trend is repeatedly bad, return to the best known
-candidate and pivot to a different axis instead of closing the loop.
+stop condition is reached.
 
 Session focus:
 Focus on subject 200014. Compare each variant against current best, relevant

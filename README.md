@@ -80,36 +80,14 @@ the user approves it.
 ## How to Command It
 
 Start from Codex with one `$loop-station` command. Write it like a short
-experiment brief; you do not need special protocol words.
-
-### What To Include
-
-For the Codex executor/supervisor, include:
-
-- target: the subject, item, model, dataset, bug, or decision
-- context: prior runs, current artifacts, important paths, known failures
-- evidence: metrics, rendered images, logs, visual checks, regression guards
-- budget: session budget, wall time, GPUs/resources, cost, stop condition
-- execution scope: what Codex may run, change, compare, or generate
-- safety rules: what Codex must ask before editing, deleting, or spending more
-- memory: what summaries should stay current for compact/resume
-
-For the Claude reviewer request, include:
-
-- reviewer identity: Claude Code or another model/version as reviewer only
-- timing: review only after Codex marks the session review-ready
-- review style: scientific, visual, metric/log, code/config, literature-backed,
-  stricter reviewer, or any mix you want
-- tools/checks: images, metrics, logs, generated code, papers, sub-agents, or
-  other audit conditions
-- output expectation: concise review, trend summary, next-direction advice, and
-  reviewer summaries before `REVIEWER-DONE`
+experiment brief; you do not need special protocol words. Include the reviewer
+you want, the review style, and when that reviewer should be called.
 
 If something essential is missing, LOOP-STATION should ask only for that missing
 detail. Once the run is started, later agents reuse the shared state instead of
 asking the same setup questions again.
 
-For full copy-paste Codex and Claude commands, see
+For full copy-paste Codex and Claude examples, see
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).
 
 ## Operational Scale

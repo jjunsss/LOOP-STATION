@@ -14,13 +14,11 @@ Use this shape for problems like:
 ## What To Customize
 
 ```text
-Target: subject, item, model, dataset, bug, or artifact to improve
-Context: prior runs, useful anchors, current best, known failures
-Evidence: metrics, rendered images, logs, visual checks, regression guards
-Budget: session budget, GPUs/resources, wall time, cost, stop condition
-Roles: Codex as executor/supervisor, Claude or another model as reviewer
-Ask before: original source edits, deletion, goal changes, extra resources
-Memory: summaries to keep so agents can compact and continue
+Goal: what should improve or be decided
+Evidence: metrics, images, logs, or checks that matter
+Budget: sessions, time, resources, or stop condition
+Reviewer: who reviews, when to start, and what style/tools to use
+Ask before: source edits, deletion, goal changes, budget changes
 ```
 
 The important split is:

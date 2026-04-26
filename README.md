@@ -103,21 +103,6 @@ Every reviewed session follows this order:
 In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
 Codex internal validation and optional sub-agent checks.
 
-Hard ordering invariant:
-
-The simple rule is: Codex cannot close a reviewed session until the reviewer has
-finished or the agreed wait policy says to continue. In flag terms,
-`SUPERVISOR-DONE` is invalid until Codex has consumed the expected reviewer
-output and updated summaries, or recorded the locked timeout.
-
-If `SUPERVISOR-DONE` appears before the required `REVIEWER-DONE`, the session is
-out of order. Codex must mark a protocol violation, read and consume the review,
-update `decision.md` or write a repair decision, then write
-`SUPERVISOR-REPAIRED` before preparing or starting the next session.
-
-The next session must not be prepared from a reviewed session whose reviewer
-output has not been consumed in `review_flags.md`.
-
 ## What the Skill Does
 
 LOOP-STATION gives an agent a concrete operating protocol:
@@ -389,22 +374,9 @@ CLAUDE-SESSION050-REVIEWER-DONE
 CODEX5.5-SESSION050-SUPERVISOR-DONE
 ```
 
-Reviewer waits are bounded so Codex does not wait forever. The wait policy in
-`contract.json` tells Codex how long to wait for a reviewer to start, keep
-working, or finish. Codex records those timing events, then proceeds only when
-that locked policy allows it.
-
-The reviewer should not start early. In flag terms, do not write
-`REVIEWER-RUNNING` before `SUPERVISOR-READY`. `SUPERVISOR-READY` means Codex has
-already completed its internal validation, written `supervisor_analysis.md`, and
-prepared the artifacts the external reviewer should inspect.
-
-Codex should not close the session before reading the reviewer output. In flag
-terms, do not write `SUPERVISOR-DONE` before the required reviewer completion
-flag has been observed and consumed. A `SUPERVISOR-DONE` timestamp earlier than
-`CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag` means Codex skipped final synthesis; the
-session must be marked `SUPERVISOR-VIOLATION`, repaired, and then marked
-`SUPERVISOR-REPAIRED` before the next session starts.
+The practical rule is simple: reviewers start after Codex has prepared the
+session for review, and Codex starts the next session only after it has consumed
+the review and updated the summaries.
 
 ## Claude Code Reviewer Mode
 

@@ -8,6 +8,12 @@
 
 LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment. Codex runs bounded sessions, reviewers hold until the session is ready, feedback is written to shared artifacts, and the next session starts only after the prior work has been reviewed and summarized.
 
+⭐ It is built for work where agents need to keep analyzing results and improve
+performance over many sessions. Traditional ML automation loops often stay
+inside a predeclared sweep space, such as fixed Hydra configs or parameter
+grids. LOOP-STATION lets agents inspect the actual code changes, logs, metrics,
+images, and trends, then plan the next intervention from what happened.
+
 ## Install
 
 ### Codex
@@ -40,6 +46,11 @@ sessions, monitors, reviews, and summary updates run for a long time.
 ## Core Idea
 
 LOOP-STATION is for live feedback loops, not one-off prompts.
+
+The goal is not just to run many variants. The goal is to make agents understand
+what changed, why the result moved, what failed, and what should be tried next.
+That makes LOOP-STATION useful for ongoing optimization work where progress
+depends on interpreting evidence, not only enumerating preset values.
 
 ```text
 Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next session

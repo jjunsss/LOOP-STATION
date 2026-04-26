@@ -124,6 +124,9 @@ If Codex has not finished the current session, hold and keep watching. Start the
 available Monitor/background watcher immediately when continuous waiting is
 possible. Review only after Codex has marked the session finished and review-ready
 (`EXECUTOR-DONE` + `SUPERVISOR-READY`) and the linked artifacts are readable.
+Before starting a new Monitor, check whether one already exists for this
+loop/output root and reviewer. Reuse it when possible; do not stack duplicate
+Monitors across sessions.
 
 Review focus:
 - visual image checks: rendered images, crops, current-best comparison, visible
@@ -145,5 +148,6 @@ Write outputs:
 After review:
 Update reviewer rollup / compact notes if file writes are available before
 writing REVIEWER-DONE. Codex will consume the review, write decision.md, update
-summaries, and then prepare the next session.
+summaries, and then prepare the next session. Before leaving the turn, check the
+next-session Monitor setup and remove, reuse, or record any duplicate watchers.
 ```

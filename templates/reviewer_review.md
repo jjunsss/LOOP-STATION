@@ -96,6 +96,15 @@
 - `REVIEWER_ROLLUP.md` updated: yes|no
 - skipped summary updates reason, if any:
 
+## Monitor / Next Session Watch
+
+- continuous monitor requested: yes|no
+- existing monitor checked before starting another: yes|no
+- monitor reused or retargeted:
+- duplicate monitors found:
+- duplicate monitors stopped/disabled/recorded:
+- next session watch status:
+
 ## Flag
 
 ```text

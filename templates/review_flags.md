@@ -74,7 +74,9 @@
 
 - [ ] active `loop_station/` folder resolved
 - [ ] target session resolved
-- [ ] persistent monitor/background watcher started when continuous waiting was requested and the environment supports it
+- [ ] existing persistent monitor/background watcher checked before starting a new one
+- [ ] persistent monitor/background watcher reused when possible, otherwise exactly one new watcher started
+- [ ] duplicate monitors stopped, disabled, or recorded
 - [ ] reviewer did not modify `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned artifacts
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` observed before review
 - [ ] `SUPERVISOR-READY` observed before normal review
@@ -83,6 +85,7 @@
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` observed only for explicit post-decision audit
 - [ ] linked artifacts verified readable before review
 - [ ] standby interruption recorded as `REVIEWER-BLOCKED` instead of a premature review
+- [ ] next-session monitor setup checked before `REVIEWER-DONE`
 
 ## Timeout Records
 

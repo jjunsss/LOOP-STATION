@@ -398,6 +398,14 @@ Before writing a terminal reviewer flag, the reviewer must update reviewer-owned
 summaries when file writes are available, or state in the terminal flag why
 summary updates were skipped.
 
+Before writing `REVIEWER-DONE`, a long-running reviewer must also check monitor
+state for the next session. If continuous watching should continue, reuse or
+retarget the existing monitor/background watcher for the same `loop_station/`
+root instead of starting another one. If duplicate monitors already exist, stop
+or disable duplicates when the environment supports it; otherwise record the
+duplicate monitor ids/names in the review artifact and terminal flag so the user
+or next reviewer can clean them up.
+
 The reviewer must then write a terminal flag:
 
 ```text
@@ -421,7 +429,7 @@ Use this mode when a reviewer is invoked before the executor has finished the cu
 
 The reviewer must not infer the frame and start editing loop files. If `FRAME.md` and `contract.json` already exist, treat them as Codex/executor-owned and read-only. If they do not exist, do not create them unless the user explicitly asks this reviewer to become the supervisor.
 
-If the user asks for continuous waiting, real-time waiting, ongoing review, or "keep watching", the reviewer should immediately use the environment's persistent monitor, background watcher, automation, or equivalent long-running polling tool when available. Do this as part of entering standby, not only after the user repeats the request.
+If the user asks for continuous waiting, real-time waiting, ongoing review, or "keep watching", the reviewer should immediately use the environment's persistent monitor, background watcher, automation, or equivalent long-running polling tool when available. Before creating one, check whether a monitor already exists for the same `loop_station/` root, session pattern, or reviewer identity; reuse it when possible and do not create parallel duplicate watchers. Do this as part of entering standby, not only after the user repeats the request.
 
 The watcher should poll for ready signals, not modify experiment files. It should emit or act only when a session becomes review-ready: `EXECUTOR-DONE` present, `SUPERVISOR-READY` present, and linked executor artifacts readable. Wait for `SUPERVISOR-DONE` only for explicit post-decision audit requests.
 
@@ -429,7 +437,7 @@ Standby sequence:
 
 1. Locate the active `loop_station/` folder from the user's provided project, subject, experiment name, or output root.
 2. Read `FRAME.md`, `contract.json`, `agent_roster.md`, `reviewer_requests.md`, and existing flags if they exist.
-3. If continuous waiting is requested and a persistent monitor/background watcher is available, start it before writing any review.
+3. If continuous waiting is requested and a persistent monitor/background watcher is available, reuse an existing watcher for the same loop when one exists; otherwise start exactly one before writing any review.
 4. If a visible waiting signal is useful, write `REVIEWER-STANDBY`; do not write
    `REVIEWER-RUNNING` yet. `STANDBY` does not start the reviewer done timeout.
 5. Do not write `REVIEWER-RUNNING`, `REVIEWER-DONE`, a review markdown file, a
@@ -449,6 +457,11 @@ For continuous waiting, repeat the flag check in this order each poll:
 4. verify linked artifacts are readable
 5. emit one ready signal or write review only after the required flags and artifacts exist
 ```
+
+At the end of each reviewer turn, audit monitor state again before continuing to
+the next session. There should normally be one active continuous watcher per
+reviewer and loop root. Duplicates should be closed, disabled, or recorded with
+their ids and reason.
 
 If the environment cannot keep a long-running wait alive, write a `REVIEWER-BLOCKED` flag explaining that the wait was interrupted and list the exact flag paths the user or executor should ping on. Do not convert an interrupted wait into a review.
 
@@ -471,7 +484,8 @@ Reviewer waits must be bounded.
     "continuous_monitor": {
       "enabled": false,
       "poll_interval_seconds": 60,
-      "ready_signal_once_per_session": true
+      "ready_signal_once_per_session": true,
+      "dedupe_by_loop_root_and_reviewer": true
     },
     "allow_skip_on_timeout": true
   }

@@ -70,6 +70,10 @@
   - tool:
   - poll interval:
   - ready signal:
+  - existing monitor checked before starting a new one: yes|no
+  - dedupe key, such as loop root + reviewer:
+  - reused monitor id/name:
+  - duplicate monitors found:
 - Review starts only after:
   - [ ] executor terminal flag observed
   - [ ] `SUPERVISOR-READY` observed
@@ -84,4 +88,7 @@
   - [ ] `summaries/LOG_TREND_SUMMARY.md`
   - [ ] `summaries/EXECUTOR_BRIEF.md`
   - [ ] `summaries/REVIEWER_ROLLUP.md`
+- Before terminal review completion, audit next-session monitor setup:
+  - [ ] existing monitor reused or retargeted when possible
+  - [ ] duplicate monitors stopped, disabled, or recorded
 - If interrupted, write `REVIEWER-BLOCKED` with the last observed flags and do not write a review.

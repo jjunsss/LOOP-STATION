@@ -111,6 +111,9 @@ usage limit while the user was asleep. That is the point: LOOP-STATION is
 for work that should keep producing results, reviews, summaries, and next-session
 plans after a normal chat would have stopped.
 
+If a reviewer uses Monitor/background watching, keep one watcher per loop when
+possible. Reuse it for the next session instead of stacking duplicate monitors.
+
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">
 </p>

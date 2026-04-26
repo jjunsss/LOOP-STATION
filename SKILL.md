@@ -15,27 +15,31 @@ The user may speak Korean, English, or both. Match the user's language in chat, 
 
 Do not start from variants. Start from the decision frame.
 
-Before launching any loop, obtain or infer the required user brief. Accept plain
+Before launching any loop, obtain or infer the core user brief. Accept plain
 language. The user does not need to use internal protocol field names.
 
 - goal: what the loop must improve or decide
 - budget: max sessions, resource pool, wall-time, cost, or other hard limit
-- session target/scope: one sample/item/case, a fixed set, or a robustness/generalization set
-- roles: supervisor only, executor/reviewer split, or external review flag
-- ask-before rules: changes that require explicit user approval, such as source edits, deletion, goal changes, extra resources, or risky operations
+- evidence: metrics, logs, images, tests, checks, or other signals that should guide decisions
 
-When writing `contract.json`, store these as `goal`, `budget`,
+Optional/custom fields can include session target/scope, reviewer roles,
+artifact paths, tools, permissions, ask-before rules, summary requirements, or
+anything else the user wants to control.
+
+When writing `contract.json`, store the core brief as `goal`, `budget`, and
+`evidence`. Store optional fields only when provided or safely inferred, such as
 `work_unit_scope`, `collaboration_mode`, and `user_intervention_points`.
 
-Ask only for missing user-owned frame fields, but keep asking until no required field is missing. Do not proceed to planning, session creation, execution, or code-variant creation until the frame is complete.
+Ask only for missing core fields when they cannot be safely inferred. Do not
+block on optional fields by default.
 
 When fields are missing:
 
 1. Infer what is safe from the current request, repo context, previous artifacts, and explicit user constraints.
 2. Present the inferred frame and mark unknowns as `missing`.
-3. Ask one bundled clarification covering only the missing required fields.
+3. Ask one bundled clarification covering only the missing core fields.
 4. After the user answers, re-check the frame.
-5. Repeat the bundled clarification loop until every required field is filled, or abstain if the user refuses or the answer would still be unsafe.
+5. Repeat the bundled clarification loop until every core field is filled, or abstain if the user refuses or the answer would still be unsafe.
 
 Do not ask the user to define detailed retire thresholds, parameter grids, or failure taxonomies by default. The supervisor derives those from current artifacts, metrics, visuals or review artifacts, prior sessions, and reviewer notes.
 

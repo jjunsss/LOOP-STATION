@@ -85,13 +85,14 @@ experiment brief; you do not need special protocol words.
 ```text
 $loop-station
 Goal: what you want to improve or decide
-Evidence: metrics, images, logs, or checks you care about
 Budget: sessions, time, GPUs/resources, or stop condition
-Reviewer: who should review, when to start, and whether to include literature/method checks
-Ask before: source edits, deletion, goal changes, or budget changes
+Evidence: metrics, logs, images, tests, or checks that should guide decisions
+Optional/custom: reviewer role, paths, tools, ask-before rules, summaries
 ```
 
-Leave unknown details out. Add more detail when you want tighter control.
+This is an example shape, not a required checklist. Goal, Budget, and Evidence
+(especially metrics) are usually worth including. Leave the rest out or
+customize it; add more detail only when you want tighter control.
 
 For full copy-paste Codex and Claude examples, see
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).

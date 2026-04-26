@@ -8,11 +8,13 @@ to decide the next direction.
 
 ```text
 Goal: what should improve or be decided
-Evidence: metrics, images, logs, or checks that matter
 Budget: sessions, time, resources, or stop condition
-Reviewer: who reviews, when to start, and whether to include literature/method checks
-Ask before: source edits, deletion, goal changes, budget changes
+Evidence: metrics, logs, images, tests, or checks that should guide decisions
+Optional/custom: reviewer role, paths, tools, ask-before rules, summaries
 ```
+
+This is only an example shape. Goal, Budget, and Evidence (especially metrics)
+are the useful core; customize the rest for your project.
 
 The important split is:
 

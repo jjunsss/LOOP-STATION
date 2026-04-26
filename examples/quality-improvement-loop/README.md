@@ -66,9 +66,10 @@ CLAUDE may perform visual image checks, code/config audit, metric/log analysis,
 artifact-completeness checks, and scientific/literature-backed challenge. When
 sub-agents are available, CLAUDE may split the review across visual, metric,
 code, log/artifact, and literature/method axes, then write one integrated review.
-CLAUDE should be active: if the project needs research context, use online
-search or papers/prior methods to challenge weak explanations and suggest a
-better next experiment.
+CLAUDE should be active: when a session result needs research context, online
+search and paper/prior-method checks are recommended for a higher-quality
+review. Use them to challenge weak explanations and suggest a better next
+experiment.
 The review request should specify the reviewer identity, such as "Claude Code",
 "GPT-5.5 xhigh reviewer", "a vision-focused reviewer instruction", or "a code
 audit reviewer instruction", so the reviewer is intentionally different from
@@ -114,9 +115,9 @@ Act as an active scientific reviewer and auditor, not as executor or supervisor.
 If sub-agents are available, use them for separate visual, metric/log,
 code/config, artifact-completeness, and literature/method checks, then write one
 integrated review. If this project needs research context, decide yourself when
-online search or paper/prior-method checks are useful, cite only sources that
-change the next decision, and turn them into concrete objections or next-session
-proposals.
+online search or paper/prior-method checks are useful for a higher-quality
+session review, cite only sources that change the next decision, and turn them
+into concrete objections or next-session proposals.
 
 Hold / monitor rule:
 If Codex has not finished the current session, hold and keep watching. Start the

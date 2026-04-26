@@ -74,10 +74,12 @@ the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
 Tell LOOP-STATION what tools, checks, and review style you want. For example,
 you can ask the reviewer for visual checks, metric checks, code audit,
 literature/method checks, online search, or a stricter scientific review. A
-reviewer should be active: if the project needs research context, it can look up
-papers or prior methods, challenge weak explanations, and propose better next
-directions. Experiments should use loop-owned variants or copies by default so
-the original project state is not changed unless the user approves it.
+reviewer should be active: when a session result needs research context, online
+search and paper/prior-method checks are recommended for a higher-quality
+review. The reviewer can use them to challenge weak explanations and propose
+better next directions. Experiments should use loop-owned variants or copies by
+default so the original project state is not changed unless the user approves
+it.
 
 ## How to Command It
 

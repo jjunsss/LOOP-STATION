@@ -129,7 +129,8 @@ Perform visual image checks and code/config audit when relevant. Use sub-agents 
 Challenge weak explanations. If useful, search relevant papers or prior methods and cite why the current approach may not be working.
 Summarize prior experiment trends and relevant logs so Codex can plan without rereading all historical raw logs.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
-Update reviewer rollup/compact notes if file writes are available, then compact only after the review is durable.
+Update reviewer rollup/compact notes before REVIEWER-DONE if file writes are available.
+Compact only after the review and summaries are durable.
 Keep watching for the next session.
 ```
 
@@ -137,120 +138,8 @@ If something essential is missing, LOOP-STATION should ask only for that missing
 detail. Once the run is started, later agents reuse the shared state instead of
 asking the same setup questions again.
 
-<details>
-<summary><strong>Realistic Experiment Command</strong></summary>
-
-Use the Codex command first. Start Claude Code after Codex has created loop
-artifacts, or ask Claude to hold and monitor until the session is review-ready.
-
-#### Codex executor / supervisor command
-
-```text
-$loop-station
-I previously ran a feet-focused loop. First, inspect that prior loop and its artifacts.
-
-Handoff:
-CODEX is the executor and supervisor. CLAUDE, or another specified model/version,
-is the external reviewer only. External review starts after CODEX marks the
-session finished and review-ready (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
-
-Goal:
-Improve the full-body human quality for subject 200014. Use quantitative metrics
-such as PSNR, LPIPS, and SSIM where useful, and inspect rendered images every
-session. Foot floaters may be a symptom of poor whole-body quality, so do not
-optimize only local foot artifacts if the full-body result regresses.
-
-Budget:
-Use a 40-session budget. You may use all 4 GPUs. Treat one session as a batch of
-variants across GPUs, then aggregate metrics, images, logs, and failures before
-choosing the next session. Use the session budget for exploration unless a real
-stop condition is reached. If a trend is repeatedly bad, return to the best known
-candidate and pivot to a different axis instead of closing the loop.
-
-Session focus:
-Focus on subject 200014. Compare each variant against current best, relevant
-anchors, and prior loop artifacts using both metrics and visual evidence.
-
-Roles:
-CODEX should run the experiments and perform its own supervisor analysis before
-external review. It may use sub-agents to inspect generated code, result images,
-metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
-CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
-write an independent review with improvement directions. CLAUDE may perform
-visual image checks, code/config audit, metric/log analysis, and artifact
-completeness checks. When sub-agents are available, CLAUDE may split the review
-across visual, metric, code, and log/artifact audit axes, then write one
-integrated reviewer report.
-The review request should specify the reviewer identity, such as "Claude Code",
-"GPT-5.5 xhigh reviewer", "a vision-focused reviewer instruction", or "a code
-audit reviewer instruction", so the reviewer is intentionally different from
-the executor path.
-Both agents should keep `loop_station/summaries/` current so context compaction
-does not lose the experiment direction. Compact only after the current agent has
-finished its turn, written the required flag, and updated summaries.
-CLAUDE should maintain `LOG_TREND_SUMMARY.md` and `EXECUTOR_BRIEF.md` from prior
-sessions and logs so CODEX can use those summaries first instead of spending
-tokens rereading all historical logs.
-
-Ask before:
-Code changes and hyperparameter changes are allowed when scientifically justified.
-Prefer diverse, informative experiments over tiny one-parameter nudges. Ask before
-directly patching maintained source if an isolated variant is not enough. If a
-direct maintained-source edit is approved, create exact backups and a restore
-manifest before editing.
-```
-
-#### Claude Code reviewer command
-
-```text
-/loop-station
-I am reviewing a running LOOP-STATION experiment that Codex is executing.
-Codex is the executor and supervisor. Claude Code is the external reviewer only.
-
-Loop/output root:
-<loop_output_root>/loop_station/
-
-Experiment context:
-Codex is improving subject 200014 full-body quality. It may already have prior
-feet-loop artifacts, current session outputs, metrics, rendered images, logs,
-code variants, and supervisor analysis. Do not rerun the experiment. Review the
-evidence and help Codex choose the next session direction.
-
-Reviewer identity:
-Act as a scientific reviewer and auditor, not as executor or supervisor. If
-sub-agents are available, use them for separate visual, metric/log, code/config,
-and artifact-completeness checks, then write one integrated review.
-
-Hold / monitor rule:
-If Codex has not finished the current session, hold and keep watching. Start the
-available Monitor/background watcher immediately when continuous waiting is
-possible. Review only after Codex has marked the session finished and review-ready
-(`EXECUTOR-DONE` + `SUPERVISOR-READY`) and the linked artifacts are readable.
-
-Review focus:
-- visual image checks: rendered images, crops, current-best comparison, visible
-  regressions that metrics may hide
-- metric/log analysis: PSNR, LPIPS, SSIM, failures, seeds, command logs, resource
-  use, and recurring trends
-- scientific/literature check: explain why the attempted improvement may have
-  failed, cite relevant papers or prior methods when useful, and propose a
-  falsifiable next mechanism
-- code/config audit: generated scripts, config changes, manifests, code variants,
-  and whether the implementation matches the stated experiment
-- historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so
-  Codex can plan the next session without rereading all historical raw logs
-
-Write outputs:
-<loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
-<loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
-
-After review:
-Update reviewer rollup / compact notes if file writes are available. Codex will
-consume the review, write decision.md, update summaries, and then prepare the
-next session.
-```
-
-</details>
+For full copy-paste Codex and Claude commands, see
+[`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).
 
 ## Operational Scale
 
@@ -270,10 +159,6 @@ plans after a normal chat would have stopped.
 
 Agents leave compact briefs in `loop_station/summaries/` so they can wake back
 up from summaries instead of replaying every old log.
-
-## Example
-
-See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) for a conceptual quality-improvement loop prompt and layout sketch.
 
 ## Notes
 

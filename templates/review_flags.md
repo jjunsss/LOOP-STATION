@@ -10,13 +10,14 @@
   2. `EXECUTOR-DONE`
   3. internal validation / sub-agent checks when available
   4. `SUPERVISOR-READY` reviewer request
-  5. `REVIEWER-RUNNING`
-  6. `REVIEWER-DONE`
-  7. Codex checks flags and consumes review
-  8. `SUPERVISOR-DONE`
-  9. compact checkpoint when useful
-  10. prepare next session
-  11. next session `EXECUTOR-RUNNING`
+  5. optional `REVIEWER-STANDBY` while waiting before review-ready
+  6. `REVIEWER-RUNNING`
+  7. `REVIEWER-DONE`
+  8. Codex checks flags and consumes review
+  9. `SUPERVISOR-DONE`
+  10. compact checkpoint when useful
+  11. prepare next session
+  12. next session `EXECUTOR-RUNNING`
 
   `SUPERVISOR-RUNNING` is the flag form of step 3.
 
@@ -36,9 +37,11 @@
 - [ ] `SUPERVISOR-READY` flag written
 - [ ] expected `flags/session_{NNN}/` path checked
 - [ ] expected `reviews/session_{NNN}/` path checked
-- [ ] `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` observed before start timeout, or timeout recorded
+- [ ] `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` observed before start timeout, or timeout recorded per required reviewer
+- [ ] pre-ready `STANDBY` was not counted as active review
 - [ ] terminal reviewer flag observed, or timeout policy applied
 - [ ] `DONE` review artifact exists and is readable before counting it
+- [ ] reviewer summary updates completed or skipped with reason before `REVIEWER-DONE`
 - [ ] required `REVIEWER-DONE` timestamp is earlier than `SUPERVISOR-DONE`
 - [ ] consumed reviewer artifacts recorded before `decision.md`
 - [ ] `summaries/ROLLING_SUMMARY.md` updated before supervisor terminal flag
@@ -76,13 +79,14 @@
 - [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` observed before review
 - [ ] `SUPERVISOR-READY` observed before normal review
 - [ ] `supervisor_analysis.md` verified readable before normal review
+- [ ] `REVIEWER-RUNNING` written only after review-ready flags and linked artifacts were readable
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` observed only for explicit post-decision audit
 - [ ] linked artifacts verified readable before review
 - [ ] standby interruption recorded as `REVIEWER-BLOCKED` instead of a premature review
 
 ## Timeout Records
 
-- `REVIEW_START_TIMEOUT`:
-- `REVIEW_HEARTBEAT_TIMEOUT`:
-- `REVIEW_DONE_TIMEOUT`:
-- `REVIEW_DONE_WITHOUT_ARTIFACT`:
+- `REVIEW_START_TIMEOUT:{reviewer}`:
+- `REVIEW_HEARTBEAT_TIMEOUT:{reviewer}`:
+- `REVIEW_DONE_TIMEOUT:{reviewer}`:
+- `REVIEW_DONE_WITHOUT_ARTIFACT:{reviewer}`:

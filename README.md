@@ -6,9 +6,12 @@
 
 **A live multi-agent loop where executors and reviewers take turns, exchange evidence, and use shared flags to coordinate timing.**
 
-LOOP-STATION helps Codex, Claude Code, and other agents stay active around the same experiment. Codex runs bounded sessions, reviewers hold until the session is ready, feedback is written to shared artifacts, and the next session starts only after the prior work has been reviewed and summarized.
+LOOP-STATION is a protocol skill, not an optimizer by itself. It keeps Codex,
+Claude Code, and other agents coordinated around long experiment loops where
+each session leaves reports, reviews, decisions, flags, and summaries under
+`loop_station/`.
 
-⭐ It is built for work where agents need to keep analyzing results and improve
+It is built for work where agents need to keep analyzing results and improve
 performance over many sessions. Traditional ML automation loops often stay
 inside a predeclared sweep space, such as fixed Hydra configs or parameter
 grids. LOOP-STATION lets agents inspect the actual code changes, logs, metrics,
@@ -36,14 +39,7 @@ Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
 
 Restart Claude Code after installation.
 
-### Permission Note
-
-For long-running LOOP-STATION work, using **Full Access** can reduce repeated
-permission prompts and save tokens because the executor does not need to pause
-and explain every file or shell action. This helps the agent keep momentum while
-sessions, monitors, reviews, and summary updates run for a long time.
-
-## Core Idea
+## How The Loop Works
 
 LOOP-STATION is for live feedback loops, not one-off prompts.
 
@@ -55,10 +51,6 @@ depends on interpreting evidence, not only enumerating preset values.
 ```text
 Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next session
 ```
-
-Agents do not all run at once. Each agent works when it has a job, holds when it is waiting, and uses small flag files in `loop_station/flags/` to tell the other agents what happened: running, ready, done, blocked, or abstained. Those flags are the timing signals that keep Codex, Claude, and other reviewers from writing too early or moving to the next session before the right artifacts exist.
-
-## How It Runs
 
 Agents use flag files as timing signals. They work when their turn opens, hold
 while waiting, and move the loop forward only after the expected result files
@@ -84,9 +76,12 @@ It should go back to the best known candidate, retire the bad direction, and tes
 a different axis while budget remains.
 
 Reviews can include visual image checks, metric/log analysis, code/config audit,
-and artifact-completeness checks. Experiments should use loop-owned variants or
-copies by default so the original project state is not changed unless the user
-approves it.
+artifact-completeness checks, and literature-backed reasoning when useful. A
+good reviewer should be willing to challenge the current direction: explain why
+an intervention likely failed, what evidence supports that explanation, and what
+different mechanism should be tested next. Experiments should use loop-owned
+variants or copies by default so the original project state is not changed unless
+the user approves it.
 
 ## How to Command It
 
@@ -98,6 +93,18 @@ run, and who should do which part.
 
 The command can be short. It works better when the goal, metrics, visual checks,
 budget, and agent roles are clear.
+
+Useful details to include:
+
+```text
+Target: the subject, item, model, dataset, bug, or decision
+Context: prior runs, current artifacts, important paths, or known failures
+Evidence: metrics, rendered images, logs, visual checks, or regression guards
+Budget / limit: session budget, wall time, GPUs, cost, or stop condition
+Roles: who runs experiments, who reviews, and when the reviewer should start
+Ask before: source edits, deletion, goal changes, extra resources, or risky operations
+Memory: what summaries to keep so agents can compact and continue
+```
 
 ```text
 $loop-station
@@ -119,22 +126,11 @@ Watch the running Codex LOOP-STATION experiment.
 Hold and keep watching until Codex says the session is finished and ready for external review (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
 When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
 Perform visual image checks and code/config audit when relevant. Use sub-agents for separate audit axes if available.
+Challenge weak explanations. If useful, search relevant papers or prior methods and cite why the current approach may not be working.
 Summarize prior experiment trends and relevant logs so Codex can plan without rereading all historical raw logs.
 Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
 Update reviewer rollup/compact notes if file writes are available, then compact only after the review is durable.
 Keep watching for the next session.
-```
-
-Useful details to include:
-
-```text
-Target: the subject, item, model, dataset, bug, or decision
-Context: prior runs, current artifacts, important paths, or known failures
-Evidence: metrics, rendered images, logs, visual checks, or regression guards
-Budget / limit: session budget, wall time, GPUs, cost, or stop condition
-Roles: who runs experiments, who reviews, and when the reviewer should start
-Ask before: source edits, deletion, goal changes, extra resources, or risky operations
-Memory: what summaries to keep so agents can compact and continue
 ```
 
 If something essential is missing, LOOP-STATION should ask only for that missing
@@ -153,15 +149,10 @@ artifacts, or ask Claude to hold and monitor until the session is review-ready.
 $loop-station
 I previously ran a feet-focused loop. First, inspect that prior loop and its artifacts.
 
-Roles:
-CODEX: executor and supervisor. Run experiments, use sub-agents when useful, write
-executor_report.md, executor_proposal.md, supervisor_analysis.md, flags, and the
-final decision.md after reviewer feedback.
-CLAUDE or another specified reviewer model/version: external reviewer only.
-Use a reviewer instruction profile: "act as a scientific reviewer and auditor,
-not as executor." Hold until CODEX marks the session as finished and review-ready
-(`EXECUTOR-DONE` + `SUPERVISOR-READY`). Then review the artifacts scientifically
-and write reviewer output.
+Handoff:
+CODEX is the executor and supervisor. CLAUDE, or another specified model/version,
+is the external reviewer only. External review starts after CODEX marks the
+session finished and review-ready (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
 
 Goal:
 Improve the full-body human quality for subject 200014. Use quantitative metrics
@@ -241,6 +232,9 @@ Review focus:
   regressions that metrics may hide
 - metric/log analysis: PSNR, LPIPS, SSIM, failures, seeds, command logs, resource
   use, and recurring trends
+- scientific/literature check: explain why the attempted improvement may have
+  failed, cite relevant papers or prior methods when useful, and propose a
+  falsifiable next mechanism
 - code/config audit: generated scripts, config changes, manifests, code variants,
   and whether the implementation matches the stated experiment
 - historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so
@@ -279,12 +273,12 @@ up from summaries instead of replaying every old log.
 
 ## Example
 
-See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) for a generic quality-improvement loop frame and artifact layout.
+See [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/) for a conceptual quality-improvement loop prompt and layout sketch.
 
 ## Notes
 
 - LOOP-STATION is a protocol skill, not an optimizer by itself. The executor still needs project-specific commands, metrics, artifacts, and resource checks.
 - Consider token and runtime cost before starting a long loop. Give a session budget, resource budget, and stop condition.
-- Understand the permission level you give the agent. Full Access is useful for long runs, but it also gives broad file and command execution.
+- Understand the permission level you give the agent. Full Access can reduce repeated prompts and save tokens in long trusted runs, but it also gives broad file and command execution.
 - Give clear code-change rules: whether source edits are allowed, whether variants/backups are required, and what the agent must ask before changing.
 - Keep durable artifacts in the loop output root and keep temporary logs or generated data out of source control unless intentionally promoted.

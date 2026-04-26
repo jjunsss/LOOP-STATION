@@ -79,7 +79,7 @@
       "loop_station/summaries/LOG_TREND_SUMMARY.md",
       "loop_station/summaries/ROLLING_SUMMARY.md",
       "loop_station/summaries/SESSION_LEDGER.md",
-      "latest sessions/session_{NNN}/decision.md",
+      "latest loop_station/sessions/session_{NNN}/decision.md",
       "latest relevant reviewer artifact"
     ]
   },

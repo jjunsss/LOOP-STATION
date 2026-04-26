@@ -19,6 +19,7 @@
 - metric audit: yes|no
 - code/config audit: yes|no
 - log/artifact audit: yes|no
+- scientific / literature check: yes|no
 - sub-agents or helper reviewers used:
 
 ## Visual Image Check
@@ -42,6 +43,14 @@
 - failures or warnings that matter for next design:
 - raw logs the executor can skip by default:
 - raw logs the executor should reopen if needed:
+
+## Scientific / Literature Challenge
+
+- weak explanation challenged:
+- likely reason the current intervention did or did not work:
+- papers, methods, docs, or prior art checked:
+- sources cited:
+- falsifiable mechanism to test next:
 
 ## Code / Config Audit
 
@@ -83,6 +92,7 @@
 - `LOG_TREND_SUMMARY.md` updated: yes|no
 - `EXECUTOR_BRIEF.md` updated: yes|no
 - `REVIEWER_ROLLUP.md` updated: yes|no
+- skipped summary updates reason, if any:
 
 ## Flag
 

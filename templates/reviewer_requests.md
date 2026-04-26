@@ -32,6 +32,11 @@
   - metrics:
   - anchors:
   - confounds:
+- scientific / literature check:
+  - failure explanation to challenge:
+  - papers, methods, docs, or prior art to search:
+  - sources that would change the next decision:
+  - falsifiable mechanism to test next:
 - code/config audit:
   - generated code:
   - configs:

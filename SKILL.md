@@ -68,7 +68,8 @@ When an axis becomes unpromising:
 5. Record the pivot rationale, retired direction, selected restart point, and
    remaining session budget in `decision.md`, `ROLLING_SUMMARY.md`,
    `SESSION_LEDGER.md`, and `COMPACT_HANDOFF.md`.
-6. Start the next session from that pivot after `SUPERVISOR-DONE`.
+6. Start the next session from that pivot after `SUPERVISOR-DONE` or a repaired
+   continuation point such as `SUPERVISOR-REPAIRED`.
 
 Do not write a final close/phase-complete decision simply because the current
 axis failed. Use `stop` only for true stop conditions. Use `pivot_axis`,
@@ -138,6 +139,27 @@ loop_station/
 
 If `contract.json` exists and `frame_locked` is true, any later agent must reuse it. Reviewer agents must not ask the user to restate the goal, budget, session scope, roles, or ask-before rules unless the contract is internally contradictory or explicitly marked stale.
 
+Bundled templates use lowercase filenames. When used, copy or render them to the
+runtime artifact names:
+
+```text
+templates/FRAME.md -> loop_station/FRAME.md
+templates/contract.json -> loop_station/contract.json
+templates/agent_roster.md -> loop_station/agent_roster.md
+templates/rolling_summary.md -> loop_station/summaries/ROLLING_SUMMARY.md
+templates/session_ledger.md -> loop_station/summaries/SESSION_LEDGER.md
+templates/compact_handoff.md -> loop_station/summaries/COMPACT_HANDOFF.md
+templates/executor_brief.md -> loop_station/summaries/EXECUTOR_BRIEF.md
+templates/log_trend_summary.md -> loop_station/summaries/LOG_TREND_SUMMARY.md
+templates/reviewer_rollup.md -> loop_station/summaries/REVIEWER_ROLLUP.md
+templates/executor_report.md -> loop_station/sessions/session_{NNN}/executor_report.md
+templates/executor_proposal.md -> loop_station/sessions/session_{NNN}/executor_proposal.md
+templates/supervisor_analysis.md -> loop_station/sessions/session_{NNN}/supervisor_analysis.md
+templates/reviewer_requests.md -> loop_station/sessions/session_{NNN}/reviewer_requests.md
+templates/review_flags.md -> loop_station/sessions/session_{NNN}/review_flags.md
+templates/reviewer_review.md -> loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.md
+```
+
 ## Rolling Summary And Compact Rule
 
 Session-wise artifacts are the source of truth. The shared `summaries/` folder is the compact-ready index that lets Codex, Claude Code, and later agents resume quickly after context compaction.
@@ -158,7 +180,7 @@ Before any agent intentionally compacts context, ends a long standby period, or 
 
 Codex or the active supervisor must update `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and `COMPACT_HANDOFF.md` after every completed session decision and before writing `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, `SUPERVISOR-ABSTAIN`, or `SUPERVISOR-REPAIRED`.
 
-Reviewer agents, including Claude Code, must update `REVIEWER_ROLLUP.md`, `LOG_TREND_SUMMARY.md`, `EXECUTOR_BRIEF.md`, and a per-compact note under `summaries/compact/` after writing `REVIEWER-DONE`, `REVIEWER-BLOCKED`, or `REVIEWER-ABSTAIN` when they have enough context to summarize. They must not edit executor-owned session artifacts while doing this.
+Reviewer agents, including Claude Code, must update `REVIEWER_ROLLUP.md`, `LOG_TREND_SUMMARY.md`, `EXECUTOR_BRIEF.md`, and a per-compact note under `summaries/compact/` before writing `REVIEWER-DONE`, `REVIEWER-BLOCKED`, or `REVIEWER-ABSTAIN` when they have enough context and file-write access to summarize. These files are reviewer-writable handoff artifacts. Reviewers must not edit executor-owned session artifacts while doing this.
 
 The reviewer-owned summaries are a token-saving handoff for the executor. The executor should not reread all historical logs by default when starting a new session. It should first read `EXECUTOR_BRIEF.md`, `LOG_TREND_SUMMARY.md`, `ROLLING_SUMMARY.md`, `SESSION_LEDGER.md`, and the latest decision/review artifacts. It should open older raw logs only when the summaries conflict, a claim needs verification, or the next experiment depends on a specific historical detail.
 
@@ -190,7 +212,7 @@ When resuming after compaction, read in this order:
 5. `loop_station/summaries/LOG_TREND_SUMMARY.md`
 6. `loop_station/summaries/ROLLING_SUMMARY.md`
 7. `loop_station/summaries/SESSION_LEDGER.md`
-8. latest `sessions/session_{NNN}/decision.md`
+8. latest `loop_station/sessions/session_{NNN}/decision.md`
 9. latest relevant reviewer artifact
 
 If summaries disagree with session artifacts, trust the session artifacts and repair the summaries before continuing.
@@ -236,7 +258,7 @@ The supervisor must:
 
 ### Dynamic Reviewer Requests
 
-The supervisor may request additional reviewers after executor artifacts exist and Codex self-review has started. The executor may recommend reviewer requests, but external reviewer handoff should be finalized by the supervisor after `supervisor_analysis.md` exists.
+The supervisor may draft additional reviewer requests after executor artifacts exist and Codex self-review has started. A draft request does not activate the reviewer. External reviewer handoff is activated only after `supervisor_analysis.md` exists, `reviewer_requests.md` is updated, and `SUPERVISOR-READY` is written.
 
 When adding a reviewer, the supervisor must update:
 
@@ -245,7 +267,7 @@ loop_station/agent_roster.md
 loop_station/sessions/session_{NNN}/reviewer_requests.md
 ```
 
-Each reviewer request must include:
+Each activated reviewer request must include:
 
 - requested reviewer agent name or reviewer class
 - requested reviewer model/version when known
@@ -305,7 +327,7 @@ If the executor cannot find the expected `loop_station/` folder, flag directory,
 
 Use this mode when another agent, including Claude Code, is asked to review the loop.
 
-If the shared frame is locked, the reviewer must not ask the user for the frame again and must not rewrite `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned session artifacts. The reviewer may read them and may write only reviewer-owned flags and review artifacts unless explicitly assigned `EXECUTOR` or `SUPERVISOR`.
+If the shared frame is locked, the reviewer must not ask the user for the frame again and must not rewrite `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned session artifacts. The reviewer may read them and may write only reviewer-owned flags, review artifacts, reviewer-owned summaries (`REVIEWER_ROLLUP.md`, `LOG_TREND_SUMMARY.md`, `EXECUTOR_BRIEF.md`, and compact notes), unless explicitly assigned `EXECUTOR` or `SUPERVISOR`.
 
 The review request should identify the reviewer as a separate reviewer identity: a different model/version, a different agent, or an explicit instruction profile. Examples: `Claude Code scientific reviewer`, `GPT-5.5 xhigh reviewer`, `vision-focused auditor`, `code/config auditor`, or `metric/log analyst`. If the model/version is unknown, the request must still state the reviewer instruction profile and that the agent is acting as `REVIEWER`.
 
@@ -327,7 +349,13 @@ Reviewer and audit work may include multiple evidence axes. Use the axes that fi
 - metric audit: compare target metrics against prior sessions, anchors, variance, and known confounds
 - code/config audit: inspect generated code, scripts, config changes, code variants, manifests, and diffs
 - log/artifact audit: verify commands, seeds, resource use, failed runs, missing files, stale outputs, and readable artifact paths
-- scientific analysis: explain plausible mechanisms, tradeoffs, hidden regressions, and next experiment implications
+- scientific analysis: challenge weak explanations, explain plausible mechanisms,
+  tradeoffs, hidden regressions, and why the attempted improvement may not have
+  worked
+- literature/method check: when the problem would benefit from outside evidence
+  and browsing or local papers are available, search relevant papers, methods,
+  docs, or prior art; summarize only the parts that change the next decision and
+  cite sources in the reviewer artifact
 
 When sub-agents or helper reviewers are available, the reviewer may split the audit by axis, for example one sub-agent for code/config, one for visual outputs, one for metrics/logs, and one for artifact completeness. The final reviewer artifact must integrate those findings into one coherent recommendation.
 
@@ -337,6 +365,8 @@ The reviewer should write only high-value review:
 - visual observations that support or contradict metric changes
 - code/config concerns that could invalidate the result
 - whether the changed values or implementation variant match the goal
+- a scientific explanation for why the current intervention did or did not work,
+  including literature-backed hypotheses when useful
 - what direction should be promoted, kept, or retired
 - what risk, confound, or missing validation could invalidate the next session
 - one concise recommended next action or `ABSTAIN`
@@ -347,17 +377,20 @@ The reviewer output path should be:
 {loop_output_root}/loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.md
 ```
 
-The reviewer must also write a flag:
+Before writing a terminal reviewer flag, the reviewer must update reviewer-owned
+summaries when file writes are available, or state in the terminal flag why
+summary updates were skipped.
+
+The reviewer must then write a terminal flag:
 
 ```text
 {loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
 ```
 
-After writing a terminal reviewer artifact, update `loop_station/summaries/REVIEWER_ROLLUP.md`, `loop_station/summaries/LOG_TREND_SUMMARY.md`, `loop_station/summaries/EXECUTOR_BRIEF.md`, and a compact note under `loop_station/summaries/compact/` when the environment allows file edits. Keep this update concise and do not modify executor-owned artifacts.
-
 The reviewer should read prior summaries and the relevant historical logs/artifacts needed to detect trends, then summarize those trends for the executor. This lets the executor design the next session from the brief instead of spending tokens rereading every prior log.
 
-Before doing review work, the reviewer should write a start flag:
+Before doing review work, the reviewer should write a start flag only after the
+session is review-ready and linked artifacts are readable:
 
 ```text
 {loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-RUNNING.flag
@@ -380,11 +413,14 @@ Standby sequence:
 1. Locate the active `loop_station/` folder from the user's provided project, subject, experiment name, or output root.
 2. Read `FRAME.md`, `contract.json`, `agent_roster.md`, `reviewer_requests.md`, and existing flags if they exist.
 3. If continuous waiting is requested and a persistent monitor/background watcher is available, start it before writing any review.
-4. Write a reviewer `RUNNING` flag only after the reviewer has resolved the target session and output paths.
-5. Do not write `REVIEWER-DONE`, a review markdown file, a decision, a proposal, or any code/config changes until the executor terminal flag and `SUPERVISOR-READY` for the target session exist.
+4. If a visible waiting signal is useful, write `REVIEWER-STANDBY`; do not write
+   `REVIEWER-RUNNING` yet. `STANDBY` does not start the reviewer done timeout.
+5. Do not write `REVIEWER-RUNNING`, `REVIEWER-DONE`, a review markdown file, a
+   decision, a proposal, or any code/config changes until the executor terminal
+   flag and `SUPERVISOR-READY` for the target session exist.
 6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, then wait for `SUPERVISOR-READY` when the request asks for Claude/reviewer input before Codex writes the final decision. Wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` only when the user explicitly asks for a post-decision audit.
 7. A plain `EXECUTOR-RUNNING`, partial report file, or `SUPERVISOR-READY` without `EXECUTOR-DONE` is not enough to start review unless the user explicitly asks for live partial review.
-8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, `supervisor_analysis.md`, metrics/logs, and result images are readable before writing the review. Require `decision.md` only for explicit post-decision audit.
+8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, `supervisor_analysis.md`, metrics/logs, and result images are readable, then write `REVIEWER-RUNNING` before writing the review. Require `decision.md` only for explicit post-decision audit.
 9. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
 
 For continuous waiting, repeat the flag check in this order each poll:
@@ -429,17 +465,35 @@ The executor must not wait forever for reviewers.
 
 Use these rules:
 
-1. After requesting review, wait up to `start_timeout_seconds` for at least one requested reviewer to write `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN`.
-2. If no reviewer writes any flag or review artifact before `start_timeout_seconds`, record `REVIEW_START_TIMEOUT` in `review_flags.md`.
-3. After a reviewer writes `RUNNING`, wait up to `done_timeout_seconds` for `DONE`, `BLOCKED`, or `ABSTAIN`.
-4. If a `RUNNING` reviewer writes no review artifact and no fresh `HEARTBEAT` flag within `heartbeat_timeout_seconds`, record `REVIEW_HEARTBEAT_TIMEOUT`.
-5. If a reviewer writes `DONE`, verify that the expected review artifact exists before counting it toward `required_done_count`.
-6. If `DONE` exists without a readable review artifact, record `REVIEW_DONE_WITHOUT_ARTIFACT` and continue waiting or apply the timeout policy.
-7. If the required done count is met, proceed.
-8. If timeout occurs and `allow_skip_on_timeout` is true, proceed with available evidence and write why the reviewer wait was skipped.
-9. If timeout occurs and `allow_skip_on_timeout` is false, stop with `ask_user` or `ABSTAIN`.
+1. After activating review with `SUPERVISOR-READY`, track start/done/heartbeat
+   timeout separately for each requested required reviewer or tester.
+2. For each required reviewer, wait up to `start_timeout_seconds` for `RUNNING`,
+   `DONE`, `BLOCKED`, or `ABSTAIN`. A pre-ready `STANDBY` or `HEARTBEAT` does
+   not count as `RUNNING` and does not start `done_timeout_seconds`.
+3. If a required reviewer writes no start or terminal flag before
+   `start_timeout_seconds`, record `REVIEW_START_TIMEOUT:{reviewer}` in
+   `review_flags.md`.
+4. After a reviewer writes `RUNNING`, wait up to `done_timeout_seconds` for
+   `DONE`, `BLOCKED`, or `ABSTAIN`.
+5. If a `RUNNING` reviewer writes no review artifact and no fresh `HEARTBEAT`
+   flag within `heartbeat_timeout_seconds`, record
+   `REVIEW_HEARTBEAT_TIMEOUT:{reviewer}`.
+6. If a reviewer writes `DONE`, verify that the expected review artifact exists
+   and that the flag states reviewer summary updates are complete or skipped with
+   a reason before counting it toward `required_done_count`.
+7. If `DONE` exists without a readable review artifact, record
+   `REVIEW_DONE_WITHOUT_ARTIFACT:{reviewer}` and continue waiting or apply the
+   timeout policy.
+8. Proceed only after every required reviewer has either a valid terminal result
+   or a recorded timeout allowed by policy, and the required done count is met or
+   explicitly skipped.
+9. If timeout occurs and `allow_skip_on_timeout` is true, proceed with available
+   evidence and write why the reviewer wait was skipped.
+10. If timeout occurs and `allow_skip_on_timeout` is false, stop with `ask_user`
+   or `ABSTAIN`.
 
-Timeouts are reviewer coordination failures, not proof that the session result is invalid. The executor should continue when the locked budget and wait policy allow it, but must preserve the timeout record.
+Preserve timeout records in `review_flags.md`. Continue only when the locked
+budget and wait policy allow it.
 
 ## Session Contract
 
@@ -505,7 +559,7 @@ The `manifest.json` must record:
 - reason for the implementation variant
 - command or config that uses the variant
 
-Do not overwrite maintained runtime files during the loop. If direct source modification is unavoidable, stop and ask the user first. If the user explicitly approves direct source modification, create exact pre-edit backups and a restore manifest before editing. The restore manifest must list every edited file, backup path, pre-edit sha256, post-edit sha256 when available, restore command or procedure, approval reference, and session id.
+Do not overwrite maintained runtime files during the loop. If direct source modification is unavoidable, stop and ask the user first. Before any maintained-source edit, the approval reference must be recorded in `contract.json`, `decision.md`, or `reviewer_requests.md`; exact pre-edit backups must exist; and a restore manifest must be created at `loop_station/sessions/session_{NNN}/restore_manifest.json`. The restore manifest must list every edited file, backup path, pre-edit sha256, post-edit sha256 when available, restore command or procedure, approval reference, and session id.
 
 Reviewers should audit implementation sessions for original protection:
 
@@ -604,6 +658,7 @@ Allowed roles:
 Allowed statuses:
 
 - `READY`
+- `STANDBY`
 - `RUNNING`
 - `HEARTBEAT`
 - `DONE`
@@ -613,7 +668,7 @@ Allowed statuses:
 - `VIOLATION`
 - `REPAIRED`
 
-Agents should write a `RUNNING` flag when they start work, then replace nothing. Long-running reviewers may add `HEARTBEAT` flags. They should add a separate terminal flag (`DONE`, `BLOCKED`, or `ABSTAIN`) when finished. The supervisor/executor may add `TIMEOUT` flags when bounded waits expire. `VIOLATION` and `REPAIRED` are reserved for protocol-order repair. Flags are append-only provenance.
+Agents should write a `RUNNING` flag when they start active work, then replace nothing. Reviewers invoked before review-ready may write `STANDBY`; `STANDBY` means holding/watching and must not be counted as active review. Long-running reviewers may add `HEARTBEAT` flags. They should add a separate terminal flag (`DONE`, `BLOCKED`, or `ABSTAIN`) when finished. The supervisor/executor may add `TIMEOUT` flags when bounded waits expire. `VIOLATION` and `REPAIRED` are reserved for protocol-order repair. Flags are append-only provenance.
 
 Recommended flag locations:
 
@@ -672,7 +727,7 @@ The supervisor must state which artifacts to inspect and what decision each arti
 
 ## Output Contract
 
-Maintain these artifacts when feasible:
+Maintain these mandatory protocol artifacts while a loop is active:
 
 ```text
 loop_station/FRAME.md
@@ -693,6 +748,11 @@ loop_station/sessions/session_{NNN}/reviewer_requests.md
 loop_station/sessions/session_{NNN}/review_flags.md
 loop_station/reviews/session_{NNN}/
 loop_station/flags/session_{NNN}/
+```
+
+Optional project-level artifacts may include:
+
+```text
 loop_state.json
 leaderboard.csv
 interventions.md
@@ -701,6 +761,10 @@ sessions/session_{NNN}/decision.md
 visualizations/
 FINAL_SUMMARY.md
 ```
+
+If a project also has top-level `sessions/`, treat it as project output, not as
+the shared protocol state. The canonical protocol decision path is
+`loop_station/sessions/session_{NNN}/decision.md`.
 
 Final summaries must separate:
 

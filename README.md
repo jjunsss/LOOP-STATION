@@ -34,10 +34,8 @@ Restart Claude Code after installation.
 
 For long-running LOOP-STATION work, using **Full Access** can reduce repeated
 permission prompts and save tokens because the executor does not need to pause
-and explain every file or shell action. Use it only in trusted repositories and
-workspaces. Full Access allows broad file and command execution, so keep
-restricted permissions for untrusted code, unfamiliar projects, or destructive
-operations.
+and explain every file or shell action. This helps the agent keep momentum while
+sessions, monitors, reviews, and summary updates run for a long time.
 
 ## Core Idea
 

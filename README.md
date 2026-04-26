@@ -111,27 +111,13 @@ Ask me before editing original project files, deleting outputs, or changing the 
 Keep rolling summaries in loop_station/summaries so agents can compact and continue.
 ```
 
-Start the reviewer after Codex has begun producing loop artifacts:
-
-```text
-/loop-station
-Watch the running Codex LOOP-STATION experiment.
-Hold and keep watching until Codex says the session is finished and ready for external review (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
-When a session is ready, read the report, proposal, supervisor analysis, metrics, logs, and images.
-Perform visual image checks and code/config audit when relevant. Use sub-agents for separate audit axes if available.
-Challenge weak explanations. If useful, search relevant papers or prior methods and cite why the current approach may not be working.
-Summarize prior experiment trends and relevant logs so Codex can plan without rereading all historical raw logs.
-Write a concise scientific review. Codex will consume it, write decision.md, then mark SUPERVISOR-DONE.
-Update reviewer rollup/compact notes before REVIEWER-DONE if file writes are available.
-Compact only after the review and summaries are durable.
-Keep watching for the next session.
-```
-
 If something essential is missing, LOOP-STATION should ask only for that missing
 detail. Once the run is started, later agents reuse the shared state instead of
 asking the same setup questions again.
 
-For full copy-paste Codex and Claude commands, see
+Start from Codex with one `$loop-station` command. Include the reviewer you want,
+the review style, and when that reviewer should be called. For full copy-paste
+Codex and Claude commands, see
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).
 
 ## Operational Scale

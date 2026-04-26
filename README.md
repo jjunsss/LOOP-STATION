@@ -100,52 +100,12 @@ Every reviewed session follows this order:
    The next session begins with the next EXECUTOR-RUNNING flag.
 ```
 
-## What the Skill Does
-
-LOOP-STATION gives an agent a concrete operating protocol:
-
-- **Locks the frame** before work starts: goal, budget, work-unit scope, collaboration mode, and user-intervention boundaries.
-- **Runs bounded sessions** instead of open-ended retries.
-- **Writes durable evidence** after each session: reports, changed values, artifacts, failures, and next proposals.
-- **Coordinates reviewer handoff** so Codex, Claude Code, or another agent can review without asking the user to restate the goal.
-- **Supports broad review/audit work**: visual image checks, metric trend analysis, log inspection, code/config audit, artifact completeness checks, and sub-agent assisted investigation.
-- **Uses named flags** to show which agent is running, done, waiting for review, or finished.
-- **Keeps code variants isolated** so loop-driven changes do not patch maintained source until the user explicitly promotes them.
-- **Protects original source and data**: experiments run through loop-owned variants or copies; direct maintained-source edits require explicit approval, exact pre-edit backups, and a restore manifest.
-- **Forces a decision point** at each session boundary: promote, keep, retire, continue, stop, or ask the user.
-
-Use it when the work needs adaptive loops rather than one-shot execution:
-
-- model or pipeline optimization
-- data cleanup and quality repair
-- code-quality or workflow refinement
-- prompt and agent-behavior iteration
-- visual and metric review loops
-- multi-agent execution with reviewer handoff
-
-## Review And Audit Examples
-
-Reviewer work can be broader than a short text opinion. The reviewer may inspect any evidence the supervisor exposes and may use sub-agents when the environment supports them.
-
-When requesting review, name the reviewer identity clearly: a different model/version, a different agent, or an explicit reviewer instruction profile. The request should say that this identity is acting as `REVIEWER`, not executor or supervisor.
-
-Examples:
-
-- **Visual image check**: compare result panels, rendered frames, crops, masks, failure examples, and current-best outputs; call out visible regressions that metrics hide.
-- **Metric audit**: check PSNR/LPIPS/SSIM or project-specific metrics against prior sessions, anchors, variance, and known confounds.
-- **Code audit**: inspect generated scripts, config changes, code variants, manifests, diffs, and whether the implementation matches the stated experiment.
-- **Log and artifact audit**: verify commands, seeds, GPU/resource use, failed runs, missing files, stale outputs, and whether reviewer-linked artifacts are readable.
-- **Sub-agent assisted review**: ask one sub-agent to inspect code changes, another to compare visual outputs, another to summarize metrics or logs, then write one integrated review.
-
-## Original Protection Rule
-
-Experiments must not mutate the original project state by default.
-
-- Run code/config experiments through loop-owned variant folders, copied scripts, copied configs, or isolated output roots.
-- Record source file hashes and variant paths in `manifest.json` so every result is traceable to the original state.
-- Do not patch maintained source directly during the loop unless the user explicitly approves it.
-- If direct source modification is approved, create exact pre-edit backups and a restore manifest before editing.
-- The reviewer should audit manifests, backups, and restore paths when a session touches code/config.
+Agents can review more than metrics. A reviewer can inspect images, logs, code
+variants, manifests, configs, generated scripts, and artifact completeness. When
+useful, split that review across sub-agents: one for visual outputs, one for
+metrics/logs, one for code/config, and one for artifact completeness. Experiments
+should run through loop-owned variants or copies by default, so the original
+project state is not mutated unless the user explicitly approves it.
 
 ## How to Command It
 

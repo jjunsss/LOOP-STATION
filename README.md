@@ -100,9 +100,6 @@ Every reviewed session follows this order:
    The next session begins with the next EXECUTOR-RUNNING flag.
 ```
 
-In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
-Codex internal validation and optional sub-agent checks.
-
 ## What the Skill Does
 
 LOOP-STATION gives an agent a concrete operating protocol:

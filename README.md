@@ -48,23 +48,19 @@ what changed, why the result moved, what failed, and what should be tried next.
 That makes LOOP-STATION useful for ongoing optimization work where progress
 depends on interpreting evidence, not only enumerating preset values.
 
-```text
-Codex runs -> Codex self-reviews -> Claude reviews -> Codex decides -> next session
-```
-
 Agents use flag files as timing signals. They work when their turn opens, hold
 while waiting, and move the loop forward only after the expected result files
 exist.
 
-```mermaid
-flowchart LR
-  A["Codex runs<br/>EXECUTOR-RUNNING"] --> B["Codex finishes results<br/>EXECUTOR-DONE"]
-  B --> C["Codex checks its own work<br/>sub-agents if useful"]
-  C --> D["Review opens<br/>SUPERVISOR-READY"]
-  D --> E["Reviewer waits, reads, reviews<br/>REVIEWER-DONE"]
-  E --> F["Codex consumes review<br/>decision + summaries"]
-  F --> G["Session ends<br/>SUPERVISOR-DONE"]
-  G --> H["Next session starts"]
+```text
+Codex runs (EXECUTOR-RUNNING)
+=> Codex finishes results (EXECUTOR-DONE)
+=> Codex self-reviews / uses sub-agents if useful
+=> Review opens (SUPERVISOR-READY)
+=> Reviewer waits, reads, reviews (REVIEWER-DONE)
+=> Codex consumes review (decision + summaries)
+=> Session ends (SUPERVISOR-DONE)
+=> Next session starts
 ```
 
 Simple rule: reviewers start after `EXECUTOR-DONE` + `SUPERVISOR-READY`, and

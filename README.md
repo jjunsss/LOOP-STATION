@@ -151,7 +151,13 @@ User intervention: changes that require explicit approval
 
 If any required field is missing, LOOP-STATION should ask only for the missing parts and keep asking until the frame is complete. Once the frame is locked, later agents reuse the same shared state instead of asking the setup questions again.
 
-### Realistic Experiment Command
+<details>
+<summary><strong>Realistic Experiment Command</strong></summary>
+
+Use the Codex command first. Start Claude Code after Codex has created loop
+artifacts, or ask Claude to hold and monitor until the session is review-ready.
+
+#### Codex executor / supervisor command
 
 ```text
 $loop-station
@@ -210,6 +216,55 @@ directly patching maintained source if an isolated variant is not enough. If a
 direct maintained-source edit is approved, create exact backups and a restore
 manifest before editing.
 ```
+
+#### Claude Code reviewer command
+
+```text
+/loop-station
+I am reviewing a running LOOP-STATION experiment that Codex is executing.
+Codex is the executor and supervisor. Claude Code is the external reviewer only.
+
+Loop/output root:
+<loop_output_root>/loop_station/
+
+Experiment context:
+Codex is improving subject 200014 full-body quality. It may already have prior
+feet-loop artifacts, current session outputs, metrics, rendered images, logs,
+code variants, and supervisor analysis. Do not rerun the experiment. Review the
+evidence and help Codex choose the next session direction.
+
+Reviewer identity:
+Act as a scientific reviewer and auditor, not as executor or supervisor. If
+sub-agents are available, use them for separate visual, metric/log, code/config,
+and artifact-completeness checks, then write one integrated review.
+
+Hold / monitor rule:
+If Codex has not finished the current session, hold and keep watching. Start the
+available Monitor/background watcher immediately when continuous waiting is
+possible. Review only after Codex has marked the session finished and review-ready
+(`EXECUTOR-DONE` + `SUPERVISOR-READY`) and the linked artifacts are readable.
+
+Review focus:
+- visual image checks: rendered images, crops, current-best comparison, visible
+  regressions that metrics may hide
+- metric/log analysis: PSNR, LPIPS, SSIM, failures, seeds, command logs, resource
+  use, and recurring trends
+- code/config audit: generated scripts, config changes, manifests, code variants,
+  and whether the implementation matches the stated experiment
+- historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so
+  Codex can plan the next session without rereading all historical raw logs
+
+Write outputs:
+<loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
+<loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
+
+After review:
+Update reviewer rollup / compact notes if file writes are available. Codex will
+consume the review, write decision.md, update summaries, and then prepare the
+next session.
+```
+
+</details>
 
 ## How It Runs
 

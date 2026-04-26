@@ -138,15 +138,3 @@ Update reviewer rollup / compact notes if file writes are available before
 writing REVIEWER-DONE. Codex will consume the review, write decision.md, update
 summaries, and then prepare the next session.
 ```
-
-## Minimal Flag Trail
-
-```text
-EXECUTOR-RUNNING
-EXECUTOR-DONE
-SUPERVISOR-READY
-REVIEWER-RUNNING
-REVIEWER-DONE
-SUPERVISOR-DONE
-next EXECUTOR-RUNNING
-```

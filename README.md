@@ -80,12 +80,19 @@ the user approves it.
 ## How to Command It
 
 Start from Codex with one `$loop-station` command. Write it like a short
-experiment brief; you do not need special protocol words. Include the reviewer
-you want, the review style, and when that reviewer should be called.
+experiment brief; you do not need special protocol words.
 
-If something essential is missing, LOOP-STATION should ask only for that missing
-detail. Once the run is started, later agents reuse the shared state instead of
-asking the same setup questions again.
+```text
+$loop-station
+Goal: what you want to improve or decide
+Evidence: metrics, images, logs, papers, or checks you care about
+Budget: sessions, time, GPUs/resources, or stop condition
+Reviewer: who should review, when to start, and what style/tools to use
+Ask before: source edits, deletion, goal changes, or budget changes
+```
+
+Leave unknown details out. Codex will ask for missing essentials, then reuse the
+same loop state for later executor and reviewer turns.
 
 For full copy-paste Codex and Claude examples, see
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).

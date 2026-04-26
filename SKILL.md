@@ -349,6 +349,15 @@ The reviewer reads:
 
 The reviewer must not run the next session or modify code unless explicitly assigned `EXECUTOR`.
 
+The reviewer is an active critic, not a passive summarizer. After the session is
+review-ready, it should decide which checks are useful for the project and use
+available tools to challenge the executor's interpretation. For research,
+scientific, method-dependent, or paper-backed projects, the reviewer should
+perform online search or local paper/prior-method checks when available, without
+waiting for the executor to request each source. Use outside evidence only when
+it can change the next decision, cite the sources in the review artifact, and
+turn the finding into a concrete mechanism, objection, or next-session proposal.
+
 Reviewer and audit work may include multiple evidence axes. Use the axes that fit the goal and available artifacts:
 
 - visual image checks: compare rendered frames, panels, crops, masks, failure examples, and current-best outputs
@@ -358,10 +367,9 @@ Reviewer and audit work may include multiple evidence axes. Use the axes that fi
 - scientific analysis: challenge weak explanations, explain plausible mechanisms,
   tradeoffs, hidden regressions, and why the attempted improvement may not have
   worked
-- literature/method check: when the problem would benefit from outside evidence
-  and browsing or local papers are available, search relevant papers, methods,
-  docs, or prior art; summarize only the parts that change the next decision and
-  cite sources in the reviewer artifact
+- literature/method check: for research or method-dependent work, use online
+  search or local papers when available; summarize only the parts that change
+  the next decision and cite sources in the reviewer artifact
 
 When sub-agents or helper reviewers are available, the reviewer may split the audit by axis, for example one sub-agent for code/config, one for visual outputs, one for metrics/logs, and one for artifact completeness. The final reviewer artifact must integrate those findings into one coherent recommendation.
 

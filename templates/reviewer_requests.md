@@ -34,7 +34,8 @@
   - confounds:
 - scientific / literature check:
   - failure explanation to challenge:
-  - papers, methods, docs, or prior art to search:
+  - reviewer may decide online search is needed: yes|no
+  - papers, methods, docs, or prior art to search or discover:
   - sources that would change the next decision:
   - falsifiable mechanism to test next:
 - code/config audit:

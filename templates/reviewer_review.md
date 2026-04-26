@@ -20,6 +20,7 @@
 - code/config audit: yes|no
 - log/artifact audit: yes|no
 - scientific / literature check: yes|no
+- online search or paper/prior-method check used: yes|no
 - sub-agents or helper reviewers used:
 
 ## Visual Image Check
@@ -49,6 +50,7 @@
 - weak explanation challenged:
 - likely reason the current intervention did or did not work:
 - papers, methods, docs, or prior art checked:
+- online search decision:
 - sources cited:
 - falsifiable mechanism to test next:
 

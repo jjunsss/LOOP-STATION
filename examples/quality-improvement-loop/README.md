@@ -66,6 +66,9 @@ CLAUDE may perform visual image checks, code/config audit, metric/log analysis,
 artifact-completeness checks, and scientific/literature-backed challenge. When
 sub-agents are available, CLAUDE may split the review across visual, metric,
 code, log/artifact, and literature/method axes, then write one integrated review.
+CLAUDE should be active: if the project needs research context, use online
+search or papers/prior methods to challenge weak explanations and suggest a
+better next experiment.
 The review request should specify the reviewer identity, such as "Claude Code",
 "GPT-5.5 xhigh reviewer", "a vision-focused reviewer instruction", or "a code
 audit reviewer instruction", so the reviewer is intentionally different from
@@ -107,10 +110,13 @@ code variants, and supervisor analysis. Do not rerun the experiment. Review the
 evidence and help Codex choose the next session direction.
 
 Reviewer identity:
-Act as a scientific reviewer and auditor, not as executor or supervisor. If
-sub-agents are available, use them for separate visual, metric/log, code/config,
-artifact-completeness, and literature/method checks, then write one integrated
-review.
+Act as an active scientific reviewer and auditor, not as executor or supervisor.
+If sub-agents are available, use them for separate visual, metric/log,
+code/config, artifact-completeness, and literature/method checks, then write one
+integrated review. If this project needs research context, decide yourself when
+online search or paper/prior-method checks are useful, cite only sources that
+change the next decision, and turn them into concrete objections or next-session
+proposals.
 
 Hold / monitor rule:
 If Codex has not finished the current session, hold and keep watching. Start the
@@ -124,8 +130,8 @@ Review focus:
 - metric/log analysis: PSNR, LPIPS, SSIM, failures, seeds, command logs, resource
   use, and recurring trends
 - scientific/literature check: explain why the attempted improvement may have
-  failed, cite relevant papers or prior methods when useful, and propose a
-  falsifiable next mechanism
+  failed, use online search or prior methods when useful, cite sources that
+  matter, and propose a falsifiable next mechanism
 - code/config audit: generated scripts, config changes, manifests, code variants,
   and whether the implementation matches the stated experiment
 - historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so

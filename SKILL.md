@@ -59,6 +59,19 @@ Repeated bad trends, a zero-promotion streak, or falsification of the current
 direction means the current axis is exhausted. It does not mean the loop is
 complete while budget remains.
 
+Likewise, an early candidate that beats baseline is a good signal, not a
+finish line. Finding improvement is what the loop is for, not a reason to
+stop. After a promotion, the loop must continue: validate the candidate on
+the rest of the work-unit scope, probe robustness on perturbations (subjects,
+views, seeds, hyperparameters), run ablations isolating which mechanism
+carries the gain, test alternative axes that the contract or prior summaries
+flagged as deferred, and look for failure modes that a single-session result
+cannot reveal. A premature stop on the first apparent winner usually produces
+a result that does not generalize — exactly the failure pattern the budget
+exists to prevent. If a candidate looks decisive enough that continuing seems
+wasteful, ask the user before stopping; do not stop and then ask. "It got
+better" is a reason to keep investigating, not a reason to close.
+
 When an axis becomes unpromising:
 
 1. Identify the best known candidate/checkpoint so far and the evidence that made

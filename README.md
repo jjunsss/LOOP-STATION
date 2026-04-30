@@ -46,9 +46,9 @@ that review and plans the next session.
   <img src="./assets/loop-station-flow.svg" alt="LOOP-STATION workflow" width="88%">
 </p>
 
-Agents coordinate through `loop_station/` artifacts and status signals. Exact
-flag names are preferred, but agents should also discover equivalent signals
-from files, paths, statuses, and linked artifacts when names vary.
+Agents communicate through files under `loop_station/`, especially
+`loop_station/flags/`. Each agent leaves its current state there, waits for the
+other agent's turn to finish, then continues from the written artifacts.
 
 You can ask the reviewer for visual checks, metric checks, code audit,
 literature/method checks, online search, or a stricter scientific review when

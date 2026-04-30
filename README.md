@@ -43,7 +43,7 @@ The loop is simple: one agent runs, another reviews, then the executor consumes
 that review and plans the next session.
 
 <p align="center">
-  <img src="./assets/loop-station-flow.svg" alt="LOOP-STATION workflow" width="88%">
+  <img src="./assets/loop-station-flow-v2.svg" alt="LOOP-STATION workflow" width="88%">
 </p>
 
 Agents communicate through files under `loop_station/`, especially

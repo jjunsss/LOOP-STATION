@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+  <title id="title">LOOP-STATION workflow</title>
+  <desc id="desc">Flow chart showing executor run, self-review, reviewer standby and review, decision and summaries, then next session.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071018"/>
+      <stop offset="0.55" stop-color="#0b151d"/>
+      <stop offset="1" stop-color="#06140f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#79f2a7"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#65e7c0"/>
+    </marker>
+    <style>
+      .label { font: 700 21px Arial, Helvetica, sans-serif; fill: #edf7f5; }
+      .sub { font: 500 14px Arial, Helvetica, sans-serif; fill: #a8bfbc; }
+      .small { font: 600 13px Arial, Helvetica, sans-serif; fill: #84efe2; letter-spacing: .04em; }
+      .box { fill: #0a181e; fill-opacity: .92; stroke: #7ef2a7; stroke-opacity: .55; stroke-width: 1.4; }
+      .box-blue { stroke: #22d3ee; stroke-opacity: .7; }
+      .arrow { fill: none; stroke: #65e7c0; stroke-width: 3.2; marker-end: url(#arrow); }
+      .soft { fill: none; stroke: #65e7c0; stroke-opacity: .22; stroke-width: 1.5; stroke-dasharray: 6 8; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="430" fill="url(#bg)" rx="24"/>
+  <path class="soft" d="M112 321 C302 398 875 392 1074 315"/>
+  <path class="soft" d="M112 109 C308 34 874 35 1084 113"/>
+
+  <text x="68" y="58" class="small">HOW THE LOOP WORKS</text>
+  <text x="68" y="91" class="label">Run, review, decide, then continue.</text>
+  <text x="68" y="116" class="sub">Agents do not act at the same time. They take turns through artifacts and status signals.</text>
+
+  <rect x="76" y="170" width="152" height="92" rx="14" class="box box-blue"/>
+  <text x="102" y="205" class="label">Executor</text>
+  <text x="102" y="229" class="sub">runs session</text>
+  <text x="102" y="249" class="sub">produces results</text>
+
+  <path d="M230 216 H308" class="arrow"/>
+
+  <rect x="320" y="170" width="164" height="92" rx="14" class="box"/>
+  <text x="348" y="205" class="label">Self-review</text>
+  <text x="348" y="229" class="sub">checks evidence</text>
+  <text x="348" y="249" class="sub">opens review</text>
+
+  <path d="M486 216 H564" class="arrow"/>
+
+  <rect x="576" y="170" width="168" height="92" rx="14" class="box box-blue"/>
+  <text x="604" y="205" class="label">Reviewer</text>
+  <text x="604" y="229" class="sub">waits, reads</text>
+  <text x="604" y="249" class="sub">writes review</text>
+
+  <path d="M746 216 H824" class="arrow"/>
+
+  <rect x="836" y="170" width="164" height="92" rx="14" class="box"/>
+  <text x="864" y="205" class="label">Decision</text>
+  <text x="864" y="229" class="sub">consume review</text>
+  <text x="864" y="249" class="sub">update summaries</text>
+
+  <path d="M1002 216 H1078" class="arrow"/>
+
+  <rect x="1090" y="170" width="34" height="92" fill="url(#accent)" opacity=".95" rx="12" filter="url(#glow)"/>
+  <path d="M1105 195 L1125 216 L1105 237" fill="none" stroke="#06140f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M1098 276 C965 355 260 355 132 276" class="arrow"/>
+  <text x="504" y="342" class="small">NEXT SESSION STARTS</text>
+
+  <rect x="354" y="294" width="492" height="42" fill="#081217" fill-opacity=".78" stroke="#22d3ee" stroke-opacity=".38" rx="10"/>
+  <text x="385" y="321" class="sub">loop_station/: flags, reports, reviews, decisions, summaries</text>
+</svg>

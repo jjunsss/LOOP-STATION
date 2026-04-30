@@ -41,14 +41,9 @@ Restart Claude Code after installation.
 The loop is simple: one agent runs, another reviews, then the executor consumes
 that review and plans the next session.
 
-```text
-Executor runs
-=> Executor writes results and self-review
-=> Reviewer waits until the session is review-ready
-=> Reviewer reads artifacts and writes review
-=> Executor consumes review, writes decision, updates summaries
-=> Next session starts
-```
+<p align="center">
+  <img src="./assets/loop-station-flow.svg" alt="LOOP-STATION workflow" width="88%">
+</p>
 
 Agents coordinate through `loop_station/` artifacts and status signals. Exact
 flag names are preferred, but agents should also discover equivalent signals

@@ -89,9 +89,10 @@ your project. Full Codex/Claude examples are here:
 
 ## Operational Scale
 
-I used LOOP-STATION in a real long run. Codex ran for 10+ hours, Claude stayed
-in review standby through Monitor, and the run hit my usage limit while I was
-sleeping. The screenshots below are from that run.
+I used LOOP-STATION once for a 50-session research-quality improvement run. In
+practice, one subject improved from roughly PSNR 24 to 29 within about 10 hours.
+Codex kept running, Claude stayed in review standby through Monitor, and the run
+hit my usage limit while I was sleeping. The screenshots below are from that run.
 
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">

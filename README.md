@@ -11,8 +11,9 @@ Claude Code, and other agents coordinated when a task needs repeated execution,
 review, decisions, summaries, and next-session planning.
 
 ⭐ It is useful when progress depends on reading what happened, not only running
-a preset sweep. Agents inspect code changes, logs, metrics, images, trends, and
-reviews, then decide what to try next.
+a preset sweep. Unlike **Hydra** or grid-search sweeps that stay inside fixed
+settings, LOOP-STATION lets agents inspect code changes, logs, metrics, images,
+trends, and reviews, then actively decide what to try next.
 
 ## Install
 

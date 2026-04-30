@@ -50,10 +50,6 @@ Agents communicate through files under `loop_station/`, especially
 `loop_station/flags/`. Each agent leaves its current state there, waits for the
 other agent's turn to finish, then continues from the written artifacts.
 
-You can ask the reviewer for visual checks, metric checks, code audit,
-literature/method checks, online search, or a stricter scientific review when
-the project needs it.
-
 ## How to Command It
 
 Start from Codex with one `$loop-station` command. The format is flexible; the

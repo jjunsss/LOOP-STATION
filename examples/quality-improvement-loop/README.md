@@ -10,7 +10,7 @@ your own project.
 Goal: what should improve or be decided
 Budget: sessions, time, resources, or stop condition
 Evidence: metrics, logs, images, tests, or checks that should guide decisions
-Optional: reviewer role, paths, tools, ask-before rules, summaries
+Optional: reviewer role, base/output paths, tools, ask-before rules, summaries
 ```
 
 Goal, Budget, and Evidence are the useful core. Everything else is optional and
@@ -36,6 +36,10 @@ Use PSNR / LPIPS / SSIM, rendered images, logs, and failure cases.
 Context:
 First inspect the prior feet-focused loop artifacts.
 Foot floaters may be a local issue, but they may also be a symptom of weaker full-body quality.
+
+Base/output path:
+Create the LOOP-STATION output under this experiment path so I can inspect and control the run:
+<base_experiment_path>/loop_station/
 
 Roles:
 Codex is the executor/supervisor. It should run sessions and summarize results, decisions, and next directions.
@@ -63,6 +67,10 @@ Context:
 이전에 feet-focused loop를 돌린 적이 있으니 먼저 관련 artifacts를 확인해줘.
 foot floater는 local foot 문제일 수도 있지만, full-body 품질 저하의 증상일 수 있으니 전체 품질 기준으로 판단해줘.
 
+Base/output path:
+내가 직접 확인하고 통제할 수 있도록 아래 실험 경로에 LOOP-STATION output을 만들어줘.
+<base_experiment_path>/loop_station/
+
 Roles:
 Codex는 executor/supervisor로 실험을 실행하고, 결과와 판단을 정리해줘.
 Claude Code는 external reviewer로 두고, session 결과가 완료된 뒤에만 리뷰하게 해줘.
@@ -76,6 +84,10 @@ Rules:
 
 Start Claude after Codex has created loop artifacts, or ask Claude to hold and
 monitor until the session is ready.
+
+This is where you define the reviewer conditions: visual checks, metric checks,
+code/config audit, literature or method checks, online search, or a stricter
+scientific review when the project needs it.
 
 English:
 

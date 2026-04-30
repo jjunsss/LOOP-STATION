@@ -65,20 +65,21 @@ important part is to brief the agents clearly for your project.
 
 ```text
 $loop-station
-Goal: what you want to improve or decide
-Budget: sessions, time, GPUs/resources, or stop condition
-Evidence: metrics, logs, images, tests, or checks that should guide decisions
-Optional: reviewer role, paths, tools, ask-before rules, summaries
-```
+Goal / 목표:
+what you want to improve or decide
+현재 실험의 품질을 개선하고 싶어.
 
-한국어로도 그대로 요청하면 됩니다.
+Budget / 예산:
+sessions, time, GPUs/resources, or stop condition
+40 sessions, GPU 4개까지 사용 가능.
 
-```text
-$loop-station
-Goal: 현재 실험의 품질을 개선하고 싶어.
-Budget: 40 sessions, GPU 4개까지 사용 가능.
-Evidence: PSNR/LPIPS/SSIM, 결과 이미지, 로그, 실패 케이스를 같이 봐줘.
-Optional: Claude를 reviewer로 쓰고, session 완료 후에만 리뷰하게 해줘.
+Evidence / 판단 근거:
+metrics, logs, images, tests, or checks that should guide decisions
+PSNR/LPIPS/SSIM, 결과 이미지, 로그, 실패 케이스를 같이 봐줘.
+
+Optional / 선택:
+reviewer role, paths, tools, ask-before rules, summaries
+Claude를 reviewer로 쓰고, session 완료 후에만 리뷰하게 해줘.
 ```
 
 Goal, Budget, Evidence는 넣는 것을 추천합니다. 나머지는 프로젝트에 맞게

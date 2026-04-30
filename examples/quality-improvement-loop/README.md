@@ -90,7 +90,7 @@ Loop/output root:
 
 Review rule:
 Wait until the Codex session is complete and review-ready signals plus linked artifacts are confirmed.
-If exact flag names differ, follow the active loop's signal pattern.
+Use the files under `loop_station/flags/` to understand whose turn it is.
 Do not review from a signal alone. Confirm that report / proposal / supervisor analysis / metrics / images / logs are readable.
 
 Review focus:
@@ -119,7 +119,7 @@ Loop/output root:
 
 Review rule:
 Codex session이 완료되고 review-ready signal과 linked artifacts가 확인될 때까지 대기해.
-정확한 flag 이름이 다르더라도 active loop의 signal pattern을 찾아서 판단해.
+`loop_station/flags/` 아래 파일을 보고 지금 누구 차례인지 판단해.
 완료 신호만 보고 리뷰하지 말고, report / proposal / supervisor analysis / metrics / images / logs가 읽히는지 확인해.
 
 Review focus:
@@ -137,8 +137,7 @@ LOG_TREND_SUMMARY.md와 EXECUTOR_BRIEF.md를 업데이트해서 Codex가 과거 
 
 ## Notes
 
-- Use the canonical flag names when possible, but follow equivalent signals when
-  the active loop uses a different naming pattern.
+- Agents use `loop_station/flags/` to leave state and wait for their turn.
 - Do not start review from partial output unless the user explicitly asks for
   live partial review.
 - If required artifacts are missing or unreadable, keep waiting within policy or

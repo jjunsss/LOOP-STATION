@@ -134,11 +134,3 @@ review artifact와 terminal reviewer signal을 남겨줘.
 LOG_TREND_SUMMARY.md와 EXECUTOR_BRIEF.md를 업데이트해서 Codex가 과거 raw logs를 다시 다 읽지 않게 해줘.
 다음 session monitor가 중복으로 늘어나지 않는지도 확인해줘.
 ```
-
-## Notes
-
-- Agents use `loop_station/flags/` to leave state and wait for their turn.
-- Do not start review from partial output unless the user explicitly asks for
-  live partial review.
-- If required artifacts are missing or unreadable, keep waiting within policy or
-  write `REVIEWER-BLOCKED` with the missing pieces.

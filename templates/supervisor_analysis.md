@@ -49,4 +49,8 @@
 ## Ready Status
 
 - ready_for_external_review: yes|no
+- ready signal to write:
+- artifact links verified readable: yes|no
+- missing/stale/ambiguous artifacts:
+- if not ready, terminal status should be `SUPERVISOR-BLOCKED`, not `SUPERVISOR-READY`
 - blocking reason if not ready:

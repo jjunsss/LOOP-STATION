@@ -48,24 +48,24 @@ what changed, why the result moved, what failed, and what should be tried next.
 That makes LOOP-STATION useful for ongoing optimization work where progress
 depends on interpreting evidence, not only enumerating preset values.
 
-Agents use flag files as timing signals. They work when their turn opens, hold
-while waiting, and move the loop forward only after the expected result files
-exist.
+Agents use flag files and linked artifacts as timing signals. Canonical names
+are preferred, but agents should follow the active loop's discovered signal
+contract instead of hard-coding one filename.
 
 ```text
-Codex runs (EXECUTOR-RUNNING)
-=> Codex finishes results (EXECUTOR-DONE)
+Codex runs (for example: EXECUTOR-RUNNING)
+=> Codex finishes results (for example: EXECUTOR-DONE)
 => Codex self-reviews / uses sub-agents if useful
-=> Review opens (SUPERVISOR-READY)
-=> Reviewer waits, reads, reviews (REVIEWER-DONE)
+=> Review opens (for example: SUPERVISOR-READY)
+=> Reviewer waits, reads, reviews (for example: REVIEWER-DONE)
 => Codex consumes review (decision + summaries)
-=> Session ends (SUPERVISOR-DONE)
+=> Session ends (for example: SUPERVISOR-DONE)
 => Next session starts
 ```
 
-Simple rule: reviewers start after `EXECUTOR-DONE` + `SUPERVISOR-READY`, and
-Codex starts the next session only after it has consumed `REVIEWER-DONE`, written
-the decision, updated summaries, and ended the session with `SUPERVISOR-DONE`.
+Simple rule: reviewers start when executor output is complete and review is
+opened; Codex starts the next session only after valid reviewer output has been
+consumed, the decision is written, and summaries are updated.
 
 Tell LOOP-STATION what tools, checks, and review style you want. For example,
 you can ask the reviewer for visual checks, metric checks, code audit,

@@ -1,6 +1,6 @@
 ---
 name: loop-station
-description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, monitor loop_station flags, exchange evidence-backed feedback, maintain compact-ready rolling summaries, and move to the next session only after required flags and artifacts exist. First lock what to improve, run limits, session target/scope, agent roles, and what to ask before doing; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before EXECUTOR-DONE and SUPERVISOR-READY exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
+description: Use for live multi-agent feedback loops where executors and reviewers stay in standby, discover loop_station signals, exchange evidence-backed feedback, maintain compact-ready rolling summaries, and move to the next session only after required signals and artifacts exist. First lock what to improve, budget, evidence, and optional role/safety rules; then run bounded adaptive sessions without open-ended retry. If invoked as a reviewer before equivalent executor-complete and review-ready signals exist, enter standby and use any available monitor/background watcher tool instead of editing files or writing a premature review.
 ---
 
 # Loop Station
@@ -133,7 +133,7 @@ loop_station/
       review_flags.md
   reviews/
     session_{NNN}/
-      {AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.md
+      {AGENT_NAME}-SESSION{NNN}-REVIEWER-{DONE|BLOCKED|ABSTAIN}.md
   flags/
     session_{NNN}/
       {AGENT_NAME}-SESSION{NNN}-{ROLE}-{STATUS}.flag
@@ -174,7 +174,7 @@ templates/executor_proposal.md -> loop_station/sessions/session_{NNN}/executor_p
 templates/supervisor_analysis.md -> loop_station/sessions/session_{NNN}/supervisor_analysis.md
 templates/reviewer_requests.md -> loop_station/sessions/session_{NNN}/reviewer_requests.md
 templates/review_flags.md -> loop_station/sessions/session_{NNN}/review_flags.md
-templates/reviewer_review.md -> loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.md
+templates/reviewer_review.md -> loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-{DONE|BLOCKED|ABSTAIN}.md
 ```
 
 ## Rolling Summary And Compact Rule
@@ -307,6 +307,23 @@ The supervisor must also write a request flag after self-review is complete:
 
 The request flag should point to `reviewer_requests.md`, `supervisor_analysis.md`, `executor_report.md`, `executor_proposal.md`, and the artifacts the reviewer must inspect.
 
+### Flag Discovery Rule
+
+Agents must not require exact flag filenames. Resolve loop state by scanning
+`loop_station/flags/session_{NNN}/`, `loop_station/sessions/session_{NNN}/`,
+`loop_station/reviews/session_{NNN}/`, and referenced paths for equivalent
+signals.
+
+A valid signal is identified by content, path, role, status, session id,
+timestamp/order, and linked artifact readability. Filename format is preferred,
+not exclusive. Treat role/status tokens in filenames, file bodies, headings,
+JSON/YAML fields, or `review_flags.md` as equivalent when they unambiguously
+match the active session.
+
+If plausible signals conflict, prefer the newest readable evidence, record the
+ambiguity in `review_flags.md`, and keep waiting or ask if the meaning is still
+unclear. Never infer completion from an expected filename alone.
+
 ### Sequential Collaboration Gate
 
 When the supervisor asks another agent to review, test, or collaborate, it must not immediately continue as if the review has happened. It must consume the collaboration flags in order.
@@ -319,11 +336,11 @@ Strict ordering invariant:
   next `EXECUTOR-RUNNING` until every required reviewer has a terminal flag
   (`REVIEWER-DONE`, `REVIEWER-BLOCKED`, `REVIEWER-ABSTAIN`) or the locked timeout
   policy has been recorded, and the rolling summaries have been updated.
-- For a `REVIEWER-DONE` terminal flag, the matching review artifact must exist,
+- For a reviewer `DONE` terminal signal, the matching review artifact must exist,
   be readable, be read by Codex, and be recorded in `review_flags.md` before
   `decision.md` and `SUPERVISOR-DONE`.
 - If an existing `SUPERVISOR-DONE` timestamp is earlier than a required
-  `REVIEWER-DONE` timestamp for the same session, treat the session as
+  reviewer terminal signal timestamp for the same session, treat the session as
   out-of-order. Do not overwrite the early flag. Write `SUPERVISOR-VIOLATION`,
   consume the review, update `decision.md` or write a repair decision, record the
   repair in `review_flags.md`, update summaries, then write `SUPERVISOR-REPAIRED`
@@ -333,14 +350,14 @@ Required sequence:
 
 1. Write or update `agent_roster.md` and `sessions/session_{NNN}/reviewer_requests.md`.
 2. Write `{SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-READY.flag` only after the Supervisor Self-Review Phase is complete, pointing to the request file, `supervisor_analysis.md`, expected artifacts, and expected reviewer output path.
-3. Check the exact `flags/session_{NNN}/` directory and expected `reviews/session_{NNN}/` path before proceeding.
-4. Wait for a requested reviewer to write one of `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` within `start_timeout_seconds`.
-5. If the reviewer writes `RUNNING`, keep waiting for a terminal flag: `DONE`, `BLOCKED`, or `ABSTAIN`. A `HEARTBEAT` only proves the reviewer is still active; it is not terminal.
-6. If the reviewer writes `DONE`, verify that the expected review artifact exists and is readable. A `DONE` flag without the review artifact is incomplete and must be recorded in `review_flags.md`.
-7. Read terminal review artifacts in flag timestamp order and record what was consumed in `review_flags.md`.
-8. Only after the required done count is met, or after the locked timeout policy explicitly allows skipping, and after the strict ordering invariant is satisfied, write `decision.md`, generate the next session slate, or summarize the review outcome.
+3. Resolve reviewer state using the Flag Discovery Rule across expected flag/review directories and linked artifacts before proceeding.
+4. Wait for a requested reviewer to signal one of `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` within `start_timeout_seconds`.
+5. If the reviewer signals `RUNNING`, keep waiting for a terminal signal: `DONE`, `BLOCKED`, or `ABSTAIN`. A `HEARTBEAT` only proves the reviewer is still active; it is not terminal.
+6. If the reviewer writes or otherwise signals `DONE`, verify that the matching review artifact exists, is readable, and matches the active session. A `DONE` signal without a readable artifact is incomplete: record it in `review_flags.md`, keep waiting, or apply the locked timeout policy. Do not count it toward `required_done_count`.
+7. Read valid terminal review artifacts in signal timestamp order and record what was consumed in `review_flags.md`.
+8. Only after every required reviewer has a valid terminal result or a recorded timeout allowed by policy, required artifact checks pass, and the strict ordering invariant is satisfied, write `decision.md`, generate the next session slate, or summarize the review outcome.
 
-If the executor cannot find the expected `loop_station/` folder, flag directory, or review artifact path, it must search the project for the active `loop_station/` folder and record the resolved path before continuing. If the path is still ambiguous, stop with `ask_user` instead of fabricating a review result.
+If the executor or reviewer cannot find the expected `loop_station/`, flag, or artifact path, search the project for an active `loop_station/` folder and equivalent session signals by content/path/status. Record the resolved path. If the active session or signal meaning remains ambiguous, wait or ask instead of fabricating a result.
 
 ### Reviewer / Project Review Mode
 
@@ -401,17 +418,17 @@ The reviewer should write only high-value review:
 - what risk, confound, or missing validation could invalidate the next session
 - one concise recommended next action or `ABSTAIN`
 
-The reviewer output path should be:
+The preferred reviewer output path is:
 
 ```text
-{loop_output_root}/loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.md
+{loop_output_root}/loop_station/reviews/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-{DONE|BLOCKED|ABSTAIN}.md
 ```
 
 Before writing a terminal reviewer flag, the reviewer must update reviewer-owned
 summaries when file writes are available, or state in the terminal flag why
 summary updates were skipped.
 
-Before writing `REVIEWER-DONE`, a long-running reviewer must also check monitor
+Before writing a terminal reviewer flag, a long-running reviewer must also check monitor
 state for the next session. If continuous watching should continue, reuse or
 retarget the existing monitor/background watcher for the same `loop_station/`
 root instead of starting another one. If duplicate monitors already exist, stop
@@ -422,7 +439,7 @@ or next reviewer can clean them up.
 The reviewer must then write a terminal flag:
 
 ```text
-{loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE.flag
+{loop_output_root}/loop_station/flags/session_{NNN}/{AGENT_NAME}-SESSION{NNN}-REVIEWER-{DONE|BLOCKED|ABSTAIN}.flag
 ```
 
 The reviewer should read prior summaries and the relevant historical logs/artifacts needed to detect trends, then summarize those trends for the executor. This lets the executor design the next session from the brief instead of spending tokens rereading every prior log.
@@ -444,7 +461,7 @@ The reviewer must not infer the frame and start editing loop files. If `FRAME.md
 
 If the user asks for continuous waiting, real-time waiting, ongoing review, or "keep watching", the reviewer should immediately use the environment's persistent monitor, background watcher, automation, or equivalent long-running polling tool when available. Before creating one, check whether a monitor already exists for the same `loop_station/` root, session pattern, or reviewer identity; reuse it when possible and do not create parallel duplicate watchers. Do this as part of entering standby, not only after the user repeats the request.
 
-The watcher should poll for ready signals, not modify experiment files. It should emit or act only when a session becomes review-ready: `EXECUTOR-DONE` present, `SUPERVISOR-READY` present, and linked executor artifacts readable. Wait for `SUPERVISOR-DONE` only for explicit post-decision audit requests.
+The watcher should poll for ready signals, not modify experiment files. It should emit or act only when the active session has equivalent `EXECUTOR-DONE` and `SUPERVISOR-READY` signals and linked executor/supervisor artifacts are readable. Wait for `SUPERVISOR-DONE` only for explicit post-decision audit requests.
 
 Standby sequence:
 
@@ -453,20 +470,20 @@ Standby sequence:
 3. If continuous waiting is requested and a persistent monitor/background watcher is available, reuse an existing watcher for the same loop when one exists; otherwise start exactly one before writing any review.
 4. If a visible waiting signal is useful, write `REVIEWER-STANDBY`; do not write
    `REVIEWER-RUNNING` yet. `STANDBY` does not start the reviewer done timeout.
-5. Do not write `REVIEWER-RUNNING`, `REVIEWER-DONE`, a review markdown file, a
+5. Do not write `REVIEWER-RUNNING`, a terminal reviewer signal, a review markdown file, a
    decision, a proposal, or any code/config changes until the executor terminal
-   flag and `SUPERVISOR-READY` for the target session exist.
-6. Poll `flags/session_{NNN}/` for `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN`, then wait for `SUPERVISOR-READY` when the request asks for Claude/reviewer input before Codex writes the final decision. Wait for `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` only when the user explicitly asks for a post-decision audit.
-7. A plain `EXECUTOR-RUNNING`, partial report file, or `SUPERVISOR-READY` without `EXECUTOR-DONE` is not enough to start review unless the user explicitly asks for live partial review.
-8. When the needed ready flags appear, verify that the linked `executor_report.md`, `executor_proposal.md`, `supervisor_analysis.md`, metrics/logs, and result images are readable, then write `REVIEWER-RUNNING` before writing the review. Require `decision.md` only for explicit post-decision audit.
+   signal and review-ready signal for the target session exist.
+6. Poll for equivalent executor terminal signals. For normal review, start only after `EXECUTOR-DONE` plus `SUPERVISOR-READY`; treat `EXECUTOR-BLOCKED` or `EXECUTOR-ABSTAIN` as blocker states unless the request asks for a blocker/postmortem audit.
+7. A plain `EXECUTOR-RUNNING`, partial report file, or `SUPERVISOR-READY` without valid executor completion artifacts is not enough to start review unless the user explicitly asks for live partial review.
+8. When ready signals appear, verify linked `executor_report.md`, `executor_proposal.md`, `supervisor_analysis.md`, metrics/logs, and result artifacts are readable, then write `REVIEWER-RUNNING` before writing the review. Require `decision.md` only for explicit post-decision audit.
 9. If no terminal flag appears yet, continue standby according to the user's wait instruction. Write at most short status updates; do not fabricate a review.
 
 For continuous waiting, repeat the flag check in this order each poll:
 
 ```text
 1. resolve active session number
-2. check executor terminal flag
-3. check `SUPERVISOR-READY` for normal review, or supervisor terminal flag only for post-decision audit
+2. discover equivalent executor terminal signal
+3. discover equivalent review-ready signal for normal review, or supervisor terminal signal only for post-decision audit
 4. verify linked artifacts are readable
 5. emit one ready signal or write review only after the required flags and artifacts exist
 ```
@@ -476,7 +493,7 @@ the next session. There should normally be one active continuous watcher per
 reviewer and loop root. Duplicates should be closed, disabled, or recorded with
 their ids and reason.
 
-If the environment cannot keep a long-running wait alive, write a `REVIEWER-BLOCKED` flag explaining that the wait was interrupted and list the exact flag paths the user or executor should ping on. Do not convert an interrupted wait into a review.
+If the environment cannot keep a long-running wait alive, write a `REVIEWER-BLOCKED` flag explaining that the wait was interrupted and list the resolved signal/artifact paths the user or executor should ping on. Do not convert an interrupted wait into a review.
 
 ## Review Wait Policy
 
@@ -509,23 +526,24 @@ The executor must not wait forever for reviewers.
 
 Use these rules:
 
-1. After activating review with `SUPERVISOR-READY`, track start/done/heartbeat
+1. After activating review with a valid `SUPERVISOR-READY` signal, track start/done/heartbeat
    timeout separately for each requested required reviewer or tester.
 2. For each required reviewer, wait up to `start_timeout_seconds` for `RUNNING`,
    `DONE`, `BLOCKED`, or `ABSTAIN`. A pre-ready `STANDBY` or `HEARTBEAT` does
    not count as `RUNNING` and does not start `done_timeout_seconds`.
-3. If a required reviewer writes no start or terminal flag before
+3. If a required reviewer writes no start or terminal signal before
    `start_timeout_seconds`, record `REVIEW_START_TIMEOUT:{reviewer}` in
    `review_flags.md`.
-4. After a reviewer writes `RUNNING`, wait up to `done_timeout_seconds` for
+4. After a reviewer signals `RUNNING`, wait up to `done_timeout_seconds` for
    `DONE`, `BLOCKED`, or `ABSTAIN`.
 5. If a `RUNNING` reviewer writes no review artifact and no fresh `HEARTBEAT`
    flag within `heartbeat_timeout_seconds`, record
    `REVIEW_HEARTBEAT_TIMEOUT:{reviewer}`.
-6. If a reviewer writes `DONE`, verify that the expected review artifact exists
-   and that the flag states reviewer summary updates are complete or skipped with
-   a reason before counting it toward `required_done_count`.
-7. If `DONE` exists without a readable review artifact, record
+6. If a reviewer signals `DONE`, verify that the matching review artifact exists,
+   is readable, matches the active session, and states reviewer summary updates
+   are complete or skipped with a reason before counting it toward
+   `required_done_count`.
+7. If `DONE` exists without a readable matching review artifact, record
    `REVIEW_DONE_WITHOUT_ARTIFACT:{reviewer}` and continue waiting or apply the
    timeout policy.
 8. Proceed only after every required reviewer has either a valid terminal result
@@ -615,54 +633,27 @@ Reviewers should audit implementation sessions for original protection:
 
 ## Agent Collaboration Flags
 
-When collaborating with other agents, every flag must name the producing agent, session, role, and status.
-
-The canonical reviewed-session lifecycle is mandatory:
+When collaborating with other agents, write clear status signals and consume them
+by the Flag Discovery Rule. The preferred reviewed-session lifecycle is:
 
 ```text
-1. EXECUTOR-RUNNING
-   The executor starts the session.
-
-2. EXECUTOR-DONE
-   The executor has produced result artifacts, metrics/log references,
-   executor_report.md, and executor_proposal.md.
-
-3. Internal validation / sub-agent checks
-   Codex or the supervisor reviews the result, uses sub-agents when available,
-   verifies code/metrics/images/logs/variants, and writes supervisor_analysis.md.
-
-4. REVIEWER request
-   The supervisor writes reviewer_requests.md and SUPERVISOR-READY.
-   This is the handoff point to Claude or another external reviewer.
-
-5. REVIEWER-RUNNING
-   The reviewer starts external review.
-
-6. REVIEWER-DONE
-   The reviewer writes the review artifact and done flag.
-
-7. Codex consumes review
-   Codex checks the reviewer flags, reads the review artifact, and records
-   consumed reviewer artifacts in review_flags.md.
-
-8. SUPERVISOR-DONE
-   Codex writes decision.md, updates summaries, then writes the terminal flag.
-
-9. Compact checkpoint
-   Codex, Claude, or another agent may compact only after durable artifacts and
-   summaries exist.
-
-10. Prepare next session
-   Codex prepares the next session slate only after SUPERVISOR-DONE.
-
-11. Next session starts
-   The next session begins with the next EXECUTOR-RUNNING flag.
+EXECUTOR-RUNNING
+=> EXECUTOR-DONE
+=> supervisor self-review / optional sub-agent checks
+=> SUPERVISOR-READY
+=> REVIEWER-RUNNING
+=> REVIEWER-DONE | REVIEWER-BLOCKED | REVIEWER-ABSTAIN
+=> consume review artifact and update review_flags.md
+=> decision.md + summaries
+=> SUPERVISOR-DONE
+=> next EXECUTOR-RUNNING
 ```
 
-In the concrete flag trail, `SUPERVISOR-RUNNING` is the flag form of step 3:
-Codex internal validation and optional sub-agent checks.
-
-Do not reorder these phases. In particular, `SUPERVISOR-READY` is the reviewer request signal and is written only after Codex has completed its own self-review/verification and `supervisor_analysis.md` is readable. `SUPERVISOR-DONE` is written only after reviewer output is consumed, `decision.md` exists, and rolling summaries are updated. The next session must not start before `SUPERVISOR-DONE`.
+`SUPERVISOR-RUNNING` may mark supervisor self-review. Do not reorder phases.
+`SUPERVISOR-READY` is written only after Codex self-review and readable
+`supervisor_analysis.md`. `SUPERVISOR-DONE` is written only after valid reviewer
+output is consumed, `decision.md` exists, and summaries are updated. The next
+session must not start before `SUPERVISOR-DONE`.
 
 If `SUPERVISOR-DONE` appears before the required reviewer terminal flag for the
 same session, the session is invalid until repaired. Codex must not use that
@@ -670,27 +661,15 @@ decision to prepare the next session. The repair path is
 `SUPERVISOR-VIOLATION -> consume review -> update decision/repair artifact ->
 SUPERVISOR-REPAIRED`.
 
-Use this normalized format:
+Use this normalized format when writing new flags:
 
 ```text
 {AGENT_NAME}-SESSION{NNN}-{ROLE}-{STATUS}
 ```
 
-Examples:
-
-```text
-CODEX5.5-SESSION050-EXECUTOR-RUNNING
-CODEX5.5-SESSION050-EXECUTOR-DONE
-CODEX5.5-SESSION050-SUPERVISOR-RUNNING
-CODEX5.5-SESSION050-SUPERVISOR-READY
-CLAUDE-SESSION050-REVIEWER-RUNNING
-CLAUDE-SESSION050-REVIEWER-HEARTBEAT
-CLAUDE-SESSION050-REVIEWER-DONE
-CODEX5.5-SESSION050-SUPERVISOR-DONE
-REVIEWER_B-SESSION050-REVIEWER-BLOCKED
-TESTER_A-SESSION050-TESTER-DONE
-CODEX5.5-SESSION050-SUPERVISOR-TIMEOUT
-```
+Filename format is preferred, but consumers must accept equivalent signals
+discovered from file content, nearby paths, status records, and linked artifact
+readability.
 
 Allowed roles:
 
@@ -734,7 +713,7 @@ Each flag must include:
 
 No agent may overwrite another agent's flag. The supervisor may consume flags, but should preserve them as provenance.
 
-For an unreviewed supervisor-only session, Codex or any other executor must leave this minimum flag trail:
+For an unreviewed supervisor-only session, Codex or any other executor should leave this minimum canonical trail or equivalent discoverable signals:
 
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
@@ -743,7 +722,7 @@ For an unreviewed supervisor-only session, Codex or any other executor must leav
 {SUPERVISOR_NAME}-SESSION{NNN}-SUPERVISOR-DONE.flag
 ```
 
-For a reviewed session, the normal flag trail is:
+For a reviewed session, the normal canonical trail is:
 
 ```text
 {EXECUTOR_NAME}-SESSION{NNN}-EXECUTOR-RUNNING.flag
@@ -772,6 +751,10 @@ The supervisor must state which artifacts to inspect and what decision each arti
 ## Output Contract
 
 Maintain these mandatory protocol artifacts while a loop is active:
+
+Canonical filenames are preferred for new artifacts. Consumers must still accept
+equivalent signals discovered from content, nearby paths, status records, and
+linked artifact readability.
 
 ```text
 loop_station/FRAME.md

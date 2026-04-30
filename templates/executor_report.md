@@ -5,6 +5,8 @@
 - status:
 - started_at:
 - finished_at:
+- if status is `DONE`, linked evidence artifacts are readable: yes|no
+- if evidence is missing or work is incomplete, use `BLOCKED` and state blocker:
 
 ## What Ran
 

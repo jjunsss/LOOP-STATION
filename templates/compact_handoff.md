@@ -17,6 +17,9 @@
 - current best:
 - latest decision:
 - budget remaining:
+- latest signal/artifact discovery method:
+- artifacts verified readable before acting:
+- unresolved or blocked handoff items:
 
 ## What Matters
 

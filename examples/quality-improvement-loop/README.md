@@ -34,8 +34,10 @@ I previously ran a feet-focused loop. First, inspect that prior loop and its art
 
 Handoff:
 CODEX is the executor and supervisor. CLAUDE, or another specified model/version,
-is the external reviewer only. External review starts after CODEX marks the
-session finished and review-ready (`EXECUTOR-DONE` + `SUPERVISOR-READY`).
+is the external reviewer only. CODEX/CLAUDE are one concrete instance; the same
+roles can be assigned to other agents. External review starts after the active
+loop shows session-complete and review-ready signals, such as `EXECUTOR-DONE` +
+`SUPERVISOR-READY`, and linked artifacts are readable.
 
 Goal:
 Improve the full-body human quality for subject 200014. Use quantitative metrics
@@ -123,7 +125,9 @@ Hold / monitor rule:
 If Codex has not finished the current session, hold and keep watching. Start the
 available Monitor/background watcher immediately when continuous waiting is
 possible. Review only after Codex has marked the session finished and review-ready
-(`EXECUTOR-DONE` + `SUPERVISOR-READY`) and the linked artifacts are readable.
+with signals such as `EXECUTOR-DONE` + `SUPERVISOR-READY`, and the linked
+artifacts are readable. If names differ, follow the active loop's discovered
+signal pattern instead of hard-coding filenames.
 Before starting a new Monitor, check whether one already exists for this
 loop/output root and reviewer. Reuse it when possible; do not stack duplicate
 Monitors across sessions.
@@ -141,13 +145,13 @@ Review focus:
 - historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so
   Codex can plan the next session without rereading all historical raw logs
 
-Write outputs:
+Write outputs using the loop's discovered naming pattern. Example convention:
 <loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
 <loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
 
 After review:
 Update reviewer rollup / compact notes if file writes are available before
-writing REVIEWER-DONE. Codex will consume the review, write decision.md, update
+writing the terminal reviewer signal. Codex will consume the review, write decision.md, update
 summaries, and then prepare the next session. Before leaving the turn, check the
 next-session Monitor setup and remove, reuse, or record any duplicate watchers.
 ```

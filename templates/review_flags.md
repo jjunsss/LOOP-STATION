@@ -5,6 +5,12 @@
 
 ## Session Flag Checklist
 
+- Signal discovery: exact canonical flags checked first; semantically equivalent
+  ready/terminal signals checked next and recorded with source path.
+- Artifact gate: do not act on any terminal signal until linked artifacts are
+  present, readable, and match the claimed session/status. Otherwise keep
+  waiting within policy, record `BLOCKED`, or record timeout.
+
 - Canonical lifecycle:
   1. `EXECUTOR-RUNNING`
   2. `EXECUTOR-DONE`
@@ -34,15 +40,14 @@
 
 - [ ] `reviewer_requests.md` updated
 - [ ] reviewer identity records agent, model/version or unknown, instruction profile, and `REVIEWER` role
-- [ ] `SUPERVISOR-READY` flag written
-- [ ] expected `flags/session_{NNN}/` path checked
-- [ ] expected `reviews/session_{NNN}/` path checked
+- [ ] review-ready signal observed or written
+- [ ] expected flag/review paths and equivalent signal sources checked
 - [ ] `RUNNING`, `DONE`, `BLOCKED`, or `ABSTAIN` observed before start timeout, or timeout recorded per required reviewer
 - [ ] pre-ready `STANDBY` was not counted as active review
 - [ ] terminal reviewer flag observed, or timeout policy applied
-- [ ] `DONE` review artifact exists and is readable before counting it
-- [ ] reviewer summary updates completed or skipped with reason before `REVIEWER-DONE`
-- [ ] required `REVIEWER-DONE` timestamp is earlier than `SUPERVISOR-DONE`
+- [ ] terminal signal passed the Artifact Gate before counting it
+- [ ] reviewer summary updates completed or skipped with reason before terminal reviewer signal
+- [ ] required reviewer terminal signal timestamp is earlier than `SUPERVISOR-DONE`
 - [ ] consumed reviewer artifacts recorded before `decision.md`
 - [ ] `summaries/ROLLING_SUMMARY.md` updated before supervisor terminal flag
 - [ ] `summaries/SESSION_LEDGER.md` updated before supervisor terminal flag
@@ -78,14 +83,14 @@
 - [ ] persistent monitor/background watcher reused when possible, otherwise exactly one new watcher started
 - [ ] duplicate monitors stopped, disabled, or recorded
 - [ ] reviewer did not modify `FRAME.md`, `contract.json`, `agent_roster.md`, or executor-owned artifacts
-- [ ] `EXECUTOR-DONE`, `EXECUTOR-BLOCKED`, or `EXECUTOR-ABSTAIN` observed before review
-- [ ] `SUPERVISOR-READY` observed before normal review
+- [ ] executor terminal signal observed before review
+- [ ] review-ready signal observed before normal review
 - [ ] `supervisor_analysis.md` verified readable before normal review
 - [ ] `REVIEWER-RUNNING` written only after review-ready flags and linked artifacts were readable
 - [ ] `SUPERVISOR-DONE`, `SUPERVISOR-BLOCKED`, or `SUPERVISOR-ABSTAIN` observed only for explicit post-decision audit
 - [ ] linked artifacts verified readable before review
 - [ ] standby interruption recorded as `REVIEWER-BLOCKED` instead of a premature review
-- [ ] next-session monitor setup checked before `REVIEWER-DONE`
+- [ ] next-session monitor setup checked before terminal reviewer signal
 
 ## Timeout Records
 

@@ -55,7 +55,8 @@
 
 ## Sequential Gate
 
-- Supervisor ready flag:
+- Review-ready signal:
+- Signal discovery: exact canonical flags checked first; equivalent ready/terminal signals checked next and recorded with source path.
 - Start timeout:
 - Done timeout:
 - Heartbeat timeout:
@@ -75,20 +76,16 @@
   - reused monitor id/name:
   - duplicate monitors found:
 - Review starts only after:
-  - [ ] executor terminal flag observed
-  - [ ] `SUPERVISOR-READY` observed
+  - [ ] executor terminal signal observed
+  - [ ] review-ready signal observed
   - [ ] `supervisor_analysis.md` is readable
   - [ ] linked executor artifacts are readable
   - [ ] linked decision artifacts are readable only for explicit post-decision audit
+- If required signals or linked artifacts are missing, stale, unreadable, or contradictory, keep waiting within policy. When wait policy ends, write `REVIEWER-BLOCKED` with last observed signals and missing artifacts. Do not infer completion from expectation alone.
 - Poll paths:
   - flags:
   - reviews:
   - session artifacts:
-- Before terminal review completion, update token-saving summaries when file writes are available:
-  - [ ] `summaries/LOG_TREND_SUMMARY.md`
-  - [ ] `summaries/EXECUTOR_BRIEF.md`
-  - [ ] `summaries/REVIEWER_ROLLUP.md`
-- Before terminal review completion, audit next-session monitor setup:
-  - [ ] existing monitor reused or retargeted when possible
-  - [ ] duplicate monitors stopped, disabled, or recorded
-- If interrupted, write `REVIEWER-BLOCKED` with the last observed flags and do not write a review.
+- Summary updates before terminal signal: done|skipped with reason
+- Next-session monitor audit: reused|duplicates recorded|not needed
+- If interrupted, write `REVIEWER-BLOCKED` with the last observed signals and do not write a review.

@@ -6,6 +6,7 @@
 - role: `REVIEWER`
 - session:
 - status:
+- blocked_reason, if status is `BLOCKED`:
 - started_at:
 - finished_at:
 
@@ -108,5 +109,5 @@
 ## Flag
 
 ```text
-{AGENT_NAME}-SESSION{NNN}-REVIEWER-DONE
+{AGENT_NAME}-SESSION{NNN}-REVIEWER-{DONE|BLOCKED|ABSTAIN}
 ```

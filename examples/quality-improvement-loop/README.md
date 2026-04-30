@@ -1,157 +1,80 @@
 # Example: Long-Running Agent Loop
 
-This example shows the command shape for a long-running loop where an executor
-runs sessions, a reviewer waits for finished work, and both agents use evidence
-to decide the next direction.
+This is a compact example for running LOOP-STATION with Codex as executor and
+Claude Code as reviewer. Replace the target, evidence, budget, and paths for
+your own project.
 
-## What To Customize
+## Minimal Shape
 
 ```text
 Goal: what should improve or be decided
 Budget: sessions, time, resources, or stop condition
 Evidence: metrics, logs, images, tests, or checks that should guide decisions
-Optional/custom: reviewer role, paths, tools, ask-before rules, summaries
+Optional: reviewer role, paths, tools, ask-before rules, summaries
 ```
 
-This is only an example shape. Goal, Budget, and Evidence (especially metrics)
-are the useful core; customize the rest for your project.
+Goal, Budget, and Evidence are the useful core. Everything else is optional and
+project-specific.
 
-The important split is:
+## Codex Executor / Supervisor
 
-```text
-loop_station/  # frame, flags, reports, reviews, decisions, summaries
-artifacts/     # images, metrics, logs, generated outputs
-```
-
-## Codex Executor / Supervisor Command
-
-Run this first in Codex. Replace the target, metrics, budget, and paths with
-your actual experiment.
+Run this first in Codex.
 
 ```text
 $loop-station
-I previously ran a feet-focused loop. First, inspect that prior loop and its artifacts.
+Goal: subject 200014의 full-body quality를 개선하고 싶어.
+Budget: 40 sessions. GPU 4개까지 사용 가능.
+Evidence: PSNR / LPIPS / SSIM, rendered images, logs, failure cases를 같이 보고 판단해줘.
 
-Handoff:
-CODEX is the executor and supervisor. CLAUDE, or another specified model/version,
-is the external reviewer only. CODEX/CLAUDE are one concrete instance; the same
-roles can be assigned to other agents. External review starts after the active
-loop shows session-complete and review-ready signals, such as `EXECUTOR-DONE` +
-`SUPERVISOR-READY`, and linked artifacts are readable.
-
-Goal:
-Improve the full-body human quality for subject 200014. Use quantitative metrics
-such as PSNR, LPIPS, and SSIM where useful, and inspect rendered images every
-session. Foot floaters may be a symptom of poor whole-body quality, so do not
-optimize only local foot artifacts if the full-body result regresses.
-
-Budget:
-Use a 40-session budget. You may use all 4 GPUs. Treat one session as a batch of
-variants across GPUs, then aggregate metrics, images, logs, and failures before
-choosing the next session. Use the session budget for exploration unless a real
-stop condition is reached.
-
-Session focus:
-Focus on subject 200014. Compare each variant against current best, relevant
-anchors, and prior loop artifacts using both metrics and visual evidence.
+Context:
+이전에 feet-focused loop를 돌린 적이 있으니 먼저 관련 artifacts를 확인해줘.
+foot floater는 local foot 문제일 수도 있지만, full-body 품질 저하의 증상일 수 있으니 전체 품질 기준으로 판단해줘.
 
 Roles:
-CODEX should run the experiments and perform its own supervisor analysis before
-external review. It may use sub-agents to inspect generated code, result images,
-metrics, logs, and variant summaries. CLAUDE should act only as reviewer: read
-CODEX's report, proposal, supervisor analysis, artifacts, and code changes, then
-write an independent review with improvement directions. Literature and prior-method
-research belongs to CLAUDE review unless you explicitly assign it to CODEX.
+Codex는 executor/supervisor로 실험을 실행하고, 결과와 판단을 정리해줘.
+Claude Code는 external reviewer로 두고, session 결과가 완료된 뒤에만 리뷰하게 해줘.
 
-Reviewer expectations:
-CLAUDE may perform visual image checks, code/config audit, metric/log analysis,
-artifact-completeness checks, and scientific/literature-backed challenge. When
-sub-agents are available, CLAUDE may split the review across visual, metric,
-code, log/artifact, and literature/method axes, then write one integrated review.
-CLAUDE should be active: when a session result needs research context, online
-search and paper/prior-method checks are recommended for a higher-quality
-review. Use them to challenge weak explanations and suggest a better next
-experiment.
-The review request should specify the reviewer identity, such as "Claude Code",
-"GPT-5.5 xhigh reviewer", "a vision-focused reviewer instruction", or "a code
-audit reviewer instruction", so the reviewer is intentionally different from
-the executor path.
-
-Memory:
-Both agents should keep `loop_station/summaries/` current so context compaction
-does not lose the experiment direction. Compact only after the current agent has
-finished its turn, written the required flag, and updated summaries. CLAUDE
-should maintain `LOG_TREND_SUMMARY.md` and `EXECUTOR_BRIEF.md` from prior
-sessions and logs so CODEX can use those summaries first instead of spending
-tokens rereading all historical logs.
-
-Ask before:
-Code changes and hyperparameter changes are allowed when scientifically justified.
-Prefer diverse, informative experiments over tiny one-parameter nudges. Ask before
-directly patching maintained source if an isolated variant is not enough. If a
-direct maintained-source edit is approved, create exact backups and a restore
-manifest before editing.
+Rules:
+원본 프로젝트는 보호하고, 가능한 loop-owned variants/backups에서 실험해줘.
+매 session 이후 summaries를 업데이트해서 compact 후에도 이어갈 수 있게 해줘.
 ```
 
-## Claude Reviewer Command
+## Claude Reviewer
 
 Start Claude after Codex has created loop artifacts, or ask Claude to hold and
-monitor until the session is review-ready.
+monitor until the session is ready.
 
 ```text
 /loop-station
-I am reviewing a running LOOP-STATION experiment that Codex is executing.
-Codex is the executor and supervisor. Claude Code is the external reviewer only.
+나는 Codex가 실행 중인 LOOP-STATION 실험을 reviewer로 볼거야.
+Codex는 executor/supervisor이고, Claude Code는 external reviewer야.
 
 Loop/output root:
 <loop_output_root>/loop_station/
 
-Experiment context:
-Codex is improving subject 200014 full-body quality. It may already have prior
-feet-loop artifacts, current session outputs, metrics, rendered images, logs,
-code variants, and supervisor analysis. Do not rerun the experiment. Review the
-evidence and help Codex choose the next session direction.
-
-Reviewer identity:
-Act as an active scientific reviewer and auditor, not as executor or supervisor.
-If sub-agents are available, use them for separate visual, metric/log,
-code/config, artifact-completeness, and literature/method checks, then write one
-integrated review. If this project needs research context, decide yourself when
-online search or paper/prior-method checks are useful for a higher-quality
-session review, cite only sources that change the next decision, and turn them
-into concrete objections or next-session proposals.
-
-Hold / monitor rule:
-If Codex has not finished the current session, hold and keep watching. Start the
-available Monitor/background watcher immediately when continuous waiting is
-possible. Review only after Codex has marked the session finished and review-ready
-with signals such as `EXECUTOR-DONE` + `SUPERVISOR-READY`, and the linked
-artifacts are readable. If names differ, follow the active loop's discovered
-signal pattern instead of hard-coding filenames.
-Before starting a new Monitor, check whether one already exists for this
-loop/output root and reviewer. Reuse it when possible; do not stack duplicate
-Monitors across sessions.
+Review rule:
+Codex session이 완료되고 review-ready signal과 linked artifacts가 확인될 때까지 대기해.
+정확한 flag 이름이 다르더라도 active loop의 signal pattern을 찾아서 판단해.
+완료 신호만 보고 리뷰하지 말고, report / proposal / supervisor analysis / metrics / images / logs가 읽히는지 확인해.
 
 Review focus:
-- visual image checks: rendered images, crops, current-best comparison, visible
-  regressions that metrics may hide
-- metric/log analysis: PSNR, LPIPS, SSIM, failures, seeds, command logs, resource
-  use, and recurring trends
-- scientific/literature check: explain why the attempted improvement may have
-  failed, use online search or prior methods when useful, cite sources that
-  matter, and propose a falsifiable next mechanism
-- code/config audit: generated scripts, config changes, manifests, code variants,
-  and whether the implementation matches the stated experiment
-- historical trend digest: update LOG_TREND_SUMMARY.md and EXECUTOR_BRIEF.md so
-  Codex can plan the next session without rereading all historical raw logs
-
-Write outputs using the loop's discovered naming pattern. Example convention:
-<loop_output_root>/loop_station/reviews/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.md
-<loop_output_root>/loop_station/flags/session_{NNN}/CLAUDE-SESSION{NNN}-REVIEWER-DONE.flag
+- metric/log trend
+- visual image check
+- code/config audit when relevant
+- literature or online search only when it improves review quality
+- concise next-session recommendation
 
 After review:
-Update reviewer rollup / compact notes if file writes are available before
-writing the terminal reviewer signal. Codex will consume the review, write decision.md, update
-summaries, and then prepare the next session. Before leaving the turn, check the
-next-session Monitor setup and remove, reuse, or record any duplicate watchers.
+review artifact와 terminal reviewer signal을 남겨줘.
+LOG_TREND_SUMMARY.md와 EXECUTOR_BRIEF.md를 업데이트해서 Codex가 과거 raw logs를 다시 다 읽지 않게 해줘.
+다음 session monitor가 중복으로 늘어나지 않는지도 확인해줘.
 ```
+
+## Notes
+
+- Use the canonical flag names when possible, but follow equivalent signals when
+  the active loop uses a different naming pattern.
+- Do not start review from partial output unless the user explicitly asks for
+  live partial review.
+- If required artifacts are missing or unreadable, keep waiting within policy or
+  write `REVIEWER-BLOCKED` with the missing pieces.

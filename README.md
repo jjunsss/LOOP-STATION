@@ -4,18 +4,15 @@
 
 # LOOP-STATION
 
-**A live multi-agent loop where executors and reviewers take turns, exchange evidence, and use shared flags to coordinate timing.**
+**A live multi-agent loop where executors and reviewers take turns, exchange evidence, and keep improving over many sessions.**
 
-LOOP-STATION is a protocol skill, not an optimizer by itself. It keeps Codex,
-Claude Code, and other agents coordinated around long experiment loops where
-each session leaves reports, reviews, decisions, flags, and summaries under
-`loop_station/`.
+LOOP-STATION is a protocol skill for long-running agent work. It keeps Codex,
+Claude Code, and other agents coordinated when a task needs repeated execution,
+review, decisions, summaries, and next-session planning.
 
-⭐ It is built for work where agents need to keep analyzing results and improve
-performance over many sessions. Traditional ML automation loops often stay
-inside a predeclared sweep space, such as fixed Hydra configs or parameter
-grids. LOOP-STATION lets agents inspect the actual code changes, logs, metrics,
-images, and trends, then plan the next intervention from what happened.
+⭐ It is useful when progress depends on reading what happened, not only running
+a preset sweep. Agents inspect code changes, logs, metrics, images, trends, and
+reviews, then decide what to try next.
 
 ## Install
 
@@ -31,7 +28,7 @@ Restart Codex after installation.
 
 ### Claude Code
 
-Ask Claude code:
+Ask Claude Code:
 
 ```text
 Install LOOP-STATION from https://github.com/jjunsss/LOOP-STATION.
@@ -41,74 +38,58 @@ Restart Claude Code after installation.
 
 ## How The Loop Works
 
-LOOP-STATION is for live feedback loops, not one-off prompts.
-
-The goal is not just to run many variants. The goal is to make agents understand
-what changed, why the result moved, what failed, and what should be tried next.
-That makes LOOP-STATION useful for ongoing optimization work where progress
-depends on interpreting evidence, not only enumerating preset values.
-
-Agents use flag files and linked artifacts as timing signals. Canonical names
-are preferred, but agents should follow the active loop's discovered signal
-contract instead of hard-coding one filename.
+The loop is simple: one agent runs, another reviews, then the executor consumes
+that review and plans the next session.
 
 ```text
-Codex runs (for example: EXECUTOR-RUNNING)
-=> Codex finishes results (for example: EXECUTOR-DONE)
-=> Codex self-reviews / uses sub-agents if useful
-=> Review opens (for example: SUPERVISOR-READY)
-=> Reviewer waits, reads, reviews (for example: REVIEWER-DONE)
-=> Codex consumes review (decision + summaries)
-=> Session ends (for example: SUPERVISOR-DONE)
+Executor runs
+=> Executor writes results and self-review
+=> Reviewer waits until the session is review-ready
+=> Reviewer reads artifacts and writes review
+=> Executor consumes review, writes decision, updates summaries
 => Next session starts
 ```
 
-Simple rule: reviewers start when executor output is complete and review is
-opened; Codex starts the next session only after valid reviewer output has been
-consumed, the decision is written, and summaries are updated.
+Agents coordinate through `loop_station/` artifacts and status signals. Exact
+flag names are preferred, but agents should also discover equivalent signals
+from files, paths, statuses, and linked artifacts when names vary.
 
-Tell LOOP-STATION what tools, checks, and review style you want. For example,
-you can ask the reviewer for visual checks, metric checks, code audit,
-literature/method checks, online search, or a stricter scientific review. A
-reviewer should be active: when a session result needs research context, online
-search and paper/prior-method checks are recommended for a higher-quality
-review. The reviewer can use them to challenge weak explanations and propose
-better next directions. Experiments should use loop-owned variants or copies by
-default so the original project state is not changed unless the user approves
-it.
+You can ask the reviewer for visual checks, metric checks, code audit,
+literature/method checks, online search, or a stricter scientific review when
+the project needs it.
 
 ## How to Command It
 
-Start from Codex with one `$loop-station` command. Write it like a short
-experiment brief; you do not need special protocol words.
+Start from Codex with one `$loop-station` command. The format is flexible; the
+important part is to brief the agents clearly for your project.
 
 ```text
 $loop-station
 Goal: what you want to improve or decide
 Budget: sessions, time, GPUs/resources, or stop condition
 Evidence: metrics, logs, images, tests, or checks that should guide decisions
-Optional/custom: reviewer role, paths, tools, ask-before rules, summaries
+Optional: reviewer role, paths, tools, ask-before rules, summaries
 ```
 
-This is an example shape, not a required checklist. The important part is to
-brief LOOP-STATION clearly for your own project. Goal, Budget, and Evidence
-(especially metrics) are usually worth including; customize the rest freely.
-More detail gives the agents tighter control.
+한국어로도 그대로 요청하면 됩니다.
 
-Below is one real example command I used, with matching Codex and Claude
-prompts:
+```text
+$loop-station
+Goal: 현재 실험의 품질을 개선하고 싶어.
+Budget: 40 sessions, GPU 4개까지 사용 가능.
+Evidence: PSNR/LPIPS/SSIM, 결과 이미지, 로그, 실패 케이스를 같이 봐줘.
+Optional: Claude를 reviewer로 쓰고, session 완료 후에만 리뷰하게 해줘.
+```
+
+Goal, Budget, Evidence는 넣는 것을 추천합니다. 나머지는 프로젝트에 맞게
+자유롭게 추가하면 됩니다. 실제 Codex/Claude 예시는 여기 있습니다:
 [`examples/quality-improvement-loop/`](examples/quality-improvement-loop/).
 
 ## Operational Scale
 
-Yes, it can actually run overnight. In one real run, Codex kept going for 10+
-hours across handoffs, Claude stayed alive through Monitor, and the loop hit the
-usage limit while the user was asleep. That is the point: LOOP-STATION is
-for work that should keep producing results, reviews, summaries, and next-session
-plans after a normal chat would have stopped.
-
-If a reviewer uses Monitor/background watching, keep one watcher per loop when
-possible. Reuse it for the next session instead of stacking duplicate monitors.
+I used LOOP-STATION in a real long run. Codex ran for 10+ hours, Claude stayed
+in review standby through Monitor, and the run hit my usage limit while I was
+sleeping. The screenshots below are from that run.
 
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">
@@ -118,14 +99,14 @@ possible. Reuse it for the next session instead of stacking duplicate monitors.
   <img src="./assets/loop-station-token-usage-example.svg" alt="LOOP-STATION token usage example" width="88%">
 </p>
 
-Agents leave compact briefs in `loop_station/summaries/` so they can wake back
-up from summaries instead of replaying every old log.
+For long runs, keep one Monitor/background watcher per loop when possible and
+reuse it across sessions. Agents also write compact summaries under
+`loop_station/summaries/` so they can resume without rereading every old log.
 
 ## Notes
 
 - LOOP-STATION is a protocol skill, not an optimizer by itself. The executor still needs project-specific commands, metrics, artifacts, and resource checks.
-- Consider token and runtime cost before starting a long loop. Give a session budget, resource budget, and stop condition.
-- Understand the permission level you give the agent. Full Access can reduce repeated prompts and save tokens in long trusted runs, but it also gives broad file and command execution.
-- Give clear code-change rules: whether source edits are allowed, whether variants/backups are required, and what the agent must ask before changing.
-- Check intermediate trends when you can. The user can intervene mid-loop, redirect the next axis, or stop a weak direction before the budget is spent.
-- Keep durable artifacts in the loop output root and keep temporary logs or generated data out of source control unless intentionally promoted.
+- Give a session budget, resource budget, and stop condition before starting a long loop.
+- Understand the permission level you give the agent.
+- Give clear code-change rules: source edits, variants/backups, and ask-before rules.
+- You can intervene mid-loop to redirect the next axis or stop a weak direction.

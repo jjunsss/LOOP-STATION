@@ -104,4 +104,5 @@ hit my usage limit while I was sleeping. The screenshots below are from that run
 - Give a session budget, resource budget, and stop condition before starting a long loop.
 - Understand the permission level you give the agent.
 - Give clear code-change rules: source edits, variants/backups, and ask-before rules.
+- Claude Code reviewers can stay in standby with Monitor and act when the next review turn is ready.
 - You can intervene mid-loop to redirect the next axis or stop a weak direction.

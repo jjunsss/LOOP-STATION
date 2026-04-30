@@ -82,8 +82,8 @@ English:
 ```text
 /loop-station
 Reviewer role:
-I am reviewing a running LOOP-STATION experiment executed by Codex.
-Codex is the executor/supervisor. Claude Code is the external reviewer.
+You are the external reviewer for a running LOOP-STATION experiment.
+Codex is the executor/supervisor. You are Claude Code, the external reviewer.
 
 Loop/output root:
 <loop_output_root>/loop_station/
@@ -111,8 +111,8 @@ Korean example:
 ```text
 /loop-station
 Reviewer role:
-나는 Codex가 실행 중인 LOOP-STATION 실험을 reviewer로 볼거야.
-Codex는 executor/supervisor이고, Claude Code는 external reviewer야.
+너는 Codex가 실행 중인 LOOP-STATION 실험의 external reviewer야.
+Codex는 executor/supervisor이고, 너는 Claude Code reviewer로 행동하면 돼.
 
 Loop/output root:
 <loop_output_root>/loop_station/

@@ -88,7 +88,8 @@ your project. Full Codex/Claude examples are here:
 I used LOOP-STATION once for a 50-session research-quality improvement run. In
 practice, one subject improved from roughly PSNR 24 to ~ 29 within about 10 hours.
 Codex kept running, Claude stayed in review standby through Monitor, and the run
-hit my usage limit while I was sleeping. The screenshots below are from that run.
+used far more tokens than I normally spend with a Pro subscription. The
+screenshots below are from that run.
 
 <p align="center">
   <img src="./assets/loop-station-runtime-example.svg" alt="LOOP-STATION long-running runtime example" width="88%">

@@ -70,7 +70,8 @@ your project. English/Korean Codex and Claude examples are here:
 ## Operational Scale
 
 I used LOOP-STATION once for a 50-session research-quality improvement run. In
-practice, one subject improved from roughly PSNR 24 to ~ 29 within about 10 hours.
+practice, one subject improved from roughly PSNR 24 to ~ 29 (PSNR is an explicit
+rendering quality metric) within about 10 hours.
 Codex kept running, Claude stayed in review standby through Monitor, and the run
 used far more tokens than I normally spend with a Pro subscription. The
 screenshots below are from that run.

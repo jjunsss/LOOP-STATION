@@ -102,10 +102,6 @@ hit my usage limit while I was sleeping. The screenshots below are from that run
   <img src="./assets/loop-station-token-usage-example.svg" alt="LOOP-STATION token usage example" width="88%">
 </p>
 
-For long runs, keep one Monitor/background watcher per loop when possible and
-reuse it across sessions. Agents also write compact summaries under
-`loop_station/summaries/` so they can resume without rereading every old log.
-
 ## Notes
 
 - LOOP-STATION is a protocol skill, not an optimizer by itself. The executor still needs project-specific commands, metrics, artifacts, and resource checks.
